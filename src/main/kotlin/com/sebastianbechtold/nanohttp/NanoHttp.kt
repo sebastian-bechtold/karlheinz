@@ -5,8 +5,8 @@ import java.net.HttpURLConnection
 import java.net.URL
 
 
-// Extent InputStream with method "transferTo" as in Java 9+:
-fun InputStream.transferTo(os: OutputStream) {
+// Extent InputStream with method "myTransferTo" as in Java 9+:
+fun InputStream.myTransferTo(os: OutputStream) {
 
     var i: Int
     // read byte by byte until end of stream
@@ -45,13 +45,13 @@ fun httpRequest(
     }
 
     // Send gsHttpRequest body:
-    data?.transferTo(conn.outputStream)
+    data?.myTransferTo(conn.outputStream)
 
     // Retrieve response body:
     var output = ByteArrayOutputStream()
 
     try {
-        conn.inputStream.transferTo(output)
+        conn.inputStream.myTransferTo(output)
     } catch (e: FileNotFoundException) {
 
     }
