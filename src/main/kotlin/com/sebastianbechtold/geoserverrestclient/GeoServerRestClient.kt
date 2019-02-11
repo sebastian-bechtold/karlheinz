@@ -83,6 +83,8 @@ class GeoServerRestClient(private val _geoServerUrl: String, username: String, p
             {
                 var url = urlWorkspaces + "/" + wsName + "/" + "datastores/" + file.name + "/file." + contentType
 
+                println("Uploading geodataset " + file.name)
+
                 return gsHttpRequest(url, "PUT", FileInputStream(file), mapOf("Content-type" to mimeType))
             }
 
@@ -95,6 +97,8 @@ class GeoServerRestClient(private val _geoServerUrl: String, username: String, p
 
                 var url_create = baseUrl + "/styles?name=" + file.name
                 var url_update = baseUrl + "/styles/" + file.name + ".sld"
+
+                println("Uploading style " + file.name)
 
                 // If resource exists, update file with PUT:
                 if (gsHttpRequest(url_update, "GET") == 200) {

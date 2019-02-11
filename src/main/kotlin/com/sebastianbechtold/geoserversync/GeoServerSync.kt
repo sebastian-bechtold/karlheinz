@@ -10,13 +10,29 @@ import java.io.File
 // of the uploaded file.
 
 
-// TODO: 2 Understand why landkreise_polygone fails with HTTP 500
-
 // TODO: 4 Implement filename-based ignoring of files and folders (e.g. with leading '_')
 
 class GeoServerSync(var _gs: GeoServerRestClient) {
 
-    fun syncDir(dir: File) : Boolean {
+    fun getContentTypeFromFileName(name: String): String {
+
+        // TODO: 3 Replace this with loop over map (file ending -> content type)
+
+        if (name.endsWith(".shp.zip")) {
+            return "shp"
+        } else if (name.endsWith(".sld.zip")) {
+            return "sld"
+        } else if (name.endsWith(".gpkg")) {
+            return "gpkg"
+        } else if (name.endsWith(".sld")) {
+            return "sld"
+        }
+
+        return ""
+    }
+
+
+    fun syncDir(dir: File): Boolean {
 
         if (!dir.exists() || !dir.isDirectory()) {
             return false
@@ -29,6 +45,13 @@ class GeoServerSync(var _gs: GeoServerRestClient) {
             } else if (it.isDirectory()) {
                 syncWorkspace(it, it.name)
             } else if (it.isFile()) {
+
+                var contentType = getContentTypeFromFileName(it.name)
+
+                if (contentType != "sld") {
+                    println("Ignoring file with invalid content type in upload root folder: " + it.name + ". In the root folder, only style files (.sld and .sld.zip) are processed.")
+                    return@forEach
+                }
 
                 print("Publish file '${it.name}' ... ")
 
@@ -56,19 +79,12 @@ class GeoServerSync(var _gs: GeoServerRestClient) {
                 return@forEach
             }
 
-            var contentType: String = ""
 
-            if (it.name.endsWith(".shp.zip")) {
-                contentType = "shp"
-            }
-            else if (it.name.endsWith(".sld.zip")) {
-                contentType = "sld"
-            }
-            else if (it.name.endsWith(".gpkg")) {
-                contentType = "gpkg"
-            }
-            else if (it.name.endsWith(".sld")) {
-                contentType = "sld"
+            var contentType = getContentTypeFromFileName(it.name)
+
+            if (contentType == "") {
+                println("Ignoring file with unknown content type: " + it.name)
+                return@forEach
             }
 
             print("Publish file '${it.name}' ... ")
@@ -76,6 +92,7 @@ class GeoServerSync(var _gs: GeoServerRestClient) {
             var status = _gs.uploadFile(it, contentType, wsName)
 
             println("HTTP " + status)
+
 
             // Try to set style as default style of layer with same name:
 
