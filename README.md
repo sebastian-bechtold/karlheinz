@@ -1,5 +1,5 @@
 # Karlheinz: GeoServer data management made easy
-Karlheinz is a command line tool for easy uploading of data files to a GeoServer instance, loosely inspired by file synchronization tools like Dropbox or OneDrive. Karlheinz is written in Kotlin and runs on the Java virtual machine.
+Karlheinz is a command line tool for easy uploading and publishing of data files to a GeoServer instance, loosely inspired by file synchronization tools like Dropbox or OneDrive. Karlheinz is written in Kotlin and runs on the Java virtual machine.
 
 **Karlheinz is in a very very early stage of development! Many planned features are still missing, no sanity checks are performed at all, and there are probably still plenty of bugs! USE AT YOUR OWN RISK!!**
 
