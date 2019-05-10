@@ -49,7 +49,7 @@ class GeoServerSync(var _gs: GeoServerRestClient) {
                 var contentType = getContentTypeFromFileName(it.name)
 
                 if (contentType != "sld") {
-                    println("Ignoring file with invalid content type in upload root folder: " + it.name + ". In the root folder, only style files (.sld and .sld.zip) are processed.")
+                    println("Ignoring file with invalid content type in upload root folder: '$it.name'. In the root folder, only style files (.sld and .sld.zip) are processed.")
                     return@forEach
                 }
 
@@ -64,7 +64,7 @@ class GeoServerSync(var _gs: GeoServerRestClient) {
     fun syncWorkspace(dir: File, wsName: String = dir.name) {
 
         if (!_gs.existsWorkspace(wsName)) {
-            print("Creating workspace '${wsName}' ... ")
+            println("Creating workspace '${wsName}' ... ")
             println("HTTP " + _gs.createWorkspace(wsName))
         } else {
             println("Workspace '${wsName}' already exists, no need to create it.")

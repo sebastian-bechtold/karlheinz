@@ -91,7 +91,7 @@ class GeoServerRestClient(private val _geoServerUrl: String, username: String, p
 
                 var url = urlWorkspaces + "/" + wsName + "/" + "datastores/" + file.name + "/file." + contentType
 
-                println("Uploading geodataset '$file.name'")
+                println("Uploading geodataset '${file.name}'")
 
                 return gsHttpRequest(url, "PUT", FileInputStream(file), mapOf("Content-type" to mimeType))
             }
