@@ -74,6 +74,8 @@ class GeoServerRestClient(private val _geoServerUrl: String, username: String, p
 
         try {
             statusCode = com.sebastianbechtold.nanohttp.httpRequest(url, method, data, headers + _authHeaders).statusCode;
+
+
         }
         catch(exception : Exception) {
             println("Exception: " + exception.message)
@@ -103,16 +105,6 @@ class GeoServerRestClient(private val _geoServerUrl: String, username: String, p
 
 
                 println("Uploading geodataset '${file.name}'")
-
-                return gsHttpRequest(url, "PUT", FileInputStream(file), mapOf("Content-type" to mimeType))
-            }
-
-
-            "featureType" -> {
-       //         var url = urlWorkspaces + "/" + wsName + "/" + "featuretypes/" + file.name + "/file." + contentType
-                var url = urlWorkspaces + "/" + wsName + "/" + "featuretypes"
-
-                println("Uploading feature type definition '${file.name}'")
 
                 return gsHttpRequest(url, "PUT", FileInputStream(file), mapOf("Content-type" to mimeType))
             }

@@ -2,6 +2,8 @@ package com.sebastianbechtold.geoserversync
 
 import com.sebastianbechtold.geoserverrestclient.GeoServerRestClient
 import java.io.File
+import java.io.FileInputStream
+import java.net.URLEncoder
 
 
 // TODO: 4 Implement filename-based ignoring of files and folders (e.g. with leading '_')
@@ -14,15 +16,12 @@ class GeoServerSync(var _gs: GeoServerRestClient) {
 
         if (name.endsWith(".shp.zip")) {
             return "shp"
-        } else if (name.endsWith(".sld.zip")) {
-            return "sld"
         } else if (name.endsWith(".gpkg")) {
             return "gpkg"
         } else if (name.endsWith(".sld")) {
             return "sld"
-        }
-        else if (name.endsWith(".ftype.xml")) {
-            return "featureType"
+        } else if (name.endsWith(".sld.zip")) {
+            return "sld"
         }
 
         return ""
@@ -58,6 +57,30 @@ class GeoServerSync(var _gs: GeoServerRestClient) {
     }
 
 
+    fun createFeatureTypes(wsName: String, dir: File) {
+
+        dir.listFiles().forEach {
+
+            if (!it.isFile()) {
+                return@forEach
+            }
+
+            var datastoreName = URLEncoder.encode(dir.name.substring(1))
+
+            var url = _gs.urlWorkspaces + "/" + wsName + "/datastores/${datastoreName}/featuretypes/"
+
+
+            var mimeType = "application/xml"
+
+            println("Uploading feature type definition '${it.name}'")
+
+            var statusCode = _gs.gsHttpRequest(url, "POST", FileInputStream(it), mapOf("Content-type" to mimeType))
+
+            println("HTTP " + statusCode)
+        }
+    }
+
+
     fun syncWorkspace(dir: File, wsName: String = dir.name) {
 
         if (!_gs.existsWorkspace(wsName)) {
@@ -68,12 +91,15 @@ class GeoServerSync(var _gs: GeoServerRestClient) {
         }
 
 
-        var featureTypeFiles = ArrayList<File>()
-
         val styleFiles = ArrayList<File>()
+        var folders = ArrayList<File>()
 
         //###################### BEGIN Upload data source files ############################
         dir.listFiles().forEach {
+
+            if (it.isDirectory) {
+                folders.add(it)
+            }
 
             if (!it.isFile()) {
                 return@forEach
@@ -82,40 +108,30 @@ class GeoServerSync(var _gs: GeoServerRestClient) {
 
             var contentType = getContentTypeFromFileName(it.name)
 
-            if (contentType == "") {
-                println("Ignoring file with unknown content type: " + it.name)
-                return@forEach
-            }
-            else if (contentType == "sld") {
-                styleFiles.add(it)
-            }
-            else if (contentType == "featureType") {
-                featureTypeFiles.add(it)
-            }
-            else {
-                var status = _gs.uploadFile(it, contentType, wsName)
-                println("HTTP " + status)
+            when (contentType) {
+                "sld" -> {
+                    styleFiles.add(it)
+                }
+
+                "shp", "gpkg" -> {
+                    var status = _gs.uploadFile(it, contentType, wsName)
+                    println("HTTP " + status)
+                }
             }
         }
         //###################### END Upload data source files ############################
 
 
-        //################ BEGIN Upload feature type definitions ###############
-        for(ftFile in featureTypeFiles) {
-            var contentType = getContentTypeFromFileName(ftFile.name)
-            var status = _gs.uploadFile(ftFile, contentType, wsName)
-            println("HTTP " + status)
-
+        for (folder in folders) {
+            createFeatureTypes(wsName, folder)
         }
-        //################ END Upload feature type definitions ###############
-
 
         //####### BEGIN Try to set each uploaded style file as default style of layer with same name ########
 
         // NOTE: We do this in a separate loop after all data and style files were uploaded in order to make
         // sure that all layers which are created from the uploaded data files already exist.
 
-        for(styleFile in styleFiles) {
+        for (styleFile in styleFiles) {
 
             // First, upload the style file:
             var contentType = getContentTypeFromFileName(styleFile.name)
