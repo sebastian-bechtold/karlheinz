@@ -53,8 +53,6 @@ class GeoServerSync(var _gs: GeoServerRestClient) {
                     return@forEach
                 }
 
-                //print("Publishing file '${it.name}' ... ")
-
                 println("HTTP " + _gs.uploadFile(it, "sld", ""))
             }
         }
@@ -87,16 +85,14 @@ class GeoServerSync(var _gs: GeoServerRestClient) {
                 return@forEach
             }
 
-            //print("Publish file '${it.name}' ... ")
 
             var status = _gs.uploadFile(it, contentType, wsName)
 
             println("HTTP " + status)
 
 
-            // Try to set style as default style of layer with same name:
+            //####### BEGIN If a style was uploaded, try to set it as default style of layer with same name ########
 
-            /*
             var fileNameBase = ""
 
             if (it.name.endsWith("sld")) {
@@ -105,20 +101,18 @@ class GeoServerSync(var _gs: GeoServerRestClient) {
                 fileNameBase = it.name.substring(0, it.name.length - 8)
             }
 
-            if (_gs.existsLayer(wsName + ":" + fileNameBase)) {
-                _gs.setLayerDefaultStyle(fileNameBase, it.name)
+            val layerName = wsName + ":" + fileNameBase
 
-                println("Set uploaded style '" + it.name + "' as default style for layer '" + fileNameBase + "'.")
+            if (_gs.existsLayer(layerName)) {
+
+                println("Setting uploaded style '" + it.name + "' as default style for layer '" + layerName + "'.")
+
+                val status = _gs.setLayerDefaultStyle(layerName, it.name)
+
+                println("HTTP " + status)
             }
-            else {
-                println("No layer named '" + fileNameBase + "' found.")
-            }
-            */
-
-
+            //####### END If a style was uploaded, try to set it as default style of layer with same name ########
         }
         //###################### END Upload data source files ############################
-
     }
-
 }
