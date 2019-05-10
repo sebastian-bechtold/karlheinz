@@ -21,6 +21,9 @@ class GeoServerSync(var _gs: GeoServerRestClient) {
         } else if (name.endsWith(".sld")) {
             return "sld"
         }
+        else if (name.endsWith(".ftype.xml")) {
+            return "featureType"
+        }
 
         return ""
     }
@@ -65,6 +68,8 @@ class GeoServerSync(var _gs: GeoServerRestClient) {
         }
 
 
+        var featureTypeFiles = ArrayList<File>()
+
         val styleFiles = ArrayList<File>()
 
         //###################### BEGIN Upload data source files ############################
@@ -84,11 +89,25 @@ class GeoServerSync(var _gs: GeoServerRestClient) {
             else if (contentType == "sld") {
                 styleFiles.add(it)
             }
-
-            var status = _gs.uploadFile(it, contentType, wsName)
-            println("HTTP " + status)
+            else if (contentType == "featureType") {
+                featureTypeFiles.add(it)
+            }
+            else {
+                var status = _gs.uploadFile(it, contentType, wsName)
+                println("HTTP " + status)
+            }
         }
         //###################### END Upload data source files ############################
+
+
+        //################ BEGIN Upload feature type definitions ###############
+        for(ftFile in featureTypeFiles) {
+            var contentType = getContentTypeFromFileName(ftFile.name)
+            var status = _gs.uploadFile(ftFile, contentType, wsName)
+            println("HTTP " + status)
+
+        }
+        //################ END Upload feature type definitions ###############
 
 
         //####### BEGIN Try to set each uploaded style file as default style of layer with same name ########
@@ -97,6 +116,14 @@ class GeoServerSync(var _gs: GeoServerRestClient) {
         // sure that all layers which are created from the uploaded data files already exist.
 
         for(styleFile in styleFiles) {
+
+            // First, upload the style file:
+            var contentType = getContentTypeFromFileName(styleFile.name)
+            var status = _gs.uploadFile(styleFile, contentType, wsName)
+            println("HTTP " + status)
+
+
+            // Then, try to auto-assign it as default style for existing layer with same name:
 
             var fileNameBase = ""
 
@@ -110,7 +137,7 @@ class GeoServerSync(var _gs: GeoServerRestClient) {
 
             if (_gs.existsLayer(layerName)) {
 
-                println("Setting uploaded style '" + styleFile.name + "' as default style for layer '" + layerName + "'.")
+                println("Setting uploaded style '${styleFile.name}' as default style for layer '${layerName}'.")
 
                 val status = _gs.setLayerDefaultStyle(layerName, styleFile.name)
 

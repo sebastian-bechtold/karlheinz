@@ -3,6 +3,7 @@
 package com.sebastianbechtold.geoserverrestclient
 
 import java.io.*
+import java.lang.Exception
 import java.util.*
 
 
@@ -14,7 +15,8 @@ class GeoServerRestClient(private val _geoServerUrl: String, username: String, p
 
     val _mimeTypesMap = mapOf(  "gpkg" to "application/gpkg",
                                 "sld" to "application/vnd.ogc.sld+xml",
-                                "zip" to "application/zip")
+                                "zip" to "application/zip",
+                                "xml" to "application/xml")
 
     //############## BEGIN urlRest property ###############
     val urlRest: String
@@ -68,7 +70,16 @@ class GeoServerRestClient(private val _geoServerUrl: String, username: String, p
 
     fun gsHttpRequest(url : String, method : String, data : InputStream? = null, headers : Map<String, String> = mapOf()) : Int {
 
-        return com.sebastianbechtold.nanohttp.httpRequest(url, method, data, headers + _authHeaders).statusCode;
+        var statusCode = 0
+
+        try {
+            statusCode = com.sebastianbechtold.nanohttp.httpRequest(url, method, data, headers + _authHeaders).statusCode;
+        }
+        catch(exception : Exception) {
+            println("Exception: " + exception.message)
+        }
+
+        return statusCode
     }
 
 
@@ -90,10 +101,22 @@ class GeoServerRestClient(private val _geoServerUrl: String, username: String, p
 
                 var url = urlWorkspaces + "/" + wsName + "/" + "datastores/" + file.name + "/file." + contentType
 
+
                 println("Uploading geodataset '${file.name}'")
 
                 return gsHttpRequest(url, "PUT", FileInputStream(file), mapOf("Content-type" to mimeType))
             }
+
+
+            "featureType" -> {
+       //         var url = urlWorkspaces + "/" + wsName + "/" + "featuretypes/" + file.name + "/file." + contentType
+                var url = urlWorkspaces + "/" + wsName + "/" + "featuretypes"
+
+                println("Uploading feature type definition '${file.name}'")
+
+                return gsHttpRequest(url, "PUT", FileInputStream(file), mapOf("Content-type" to mimeType))
+            }
+
 
             "sld" -> {
                 var baseUrl = urlRest
@@ -105,7 +128,7 @@ class GeoServerRestClient(private val _geoServerUrl: String, username: String, p
                 var url_create = baseUrl + "/styles?name=" + file.name
                 var url_update = baseUrl + "/styles/" + file.name + ".sld"
 
-                println("Uploading style '$file.name'")
+                println("Uploading style '${file.name}'")
 
                 // If resource exists, update file with PUT:
                 if (gsHttpRequest(url_update, "GET") == 200) {
