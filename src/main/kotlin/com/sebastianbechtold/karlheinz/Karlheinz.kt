@@ -13,19 +13,16 @@ import java.io.File
 class Args {
 
     @Option(name = "-dir", required = true, usage = "Directory to synchronize")
-    public var syncDir: String = ""
-
+    var syncDir: String = ""
 
     @Option(name = "-url", required = true, usage = "GeoServer URL")
-    public var geoServerUrl: String = ""
-
+    var geoServerUrl: String = ""
 
     @Option(name = "-p", required = true, usage = "GeoServer password")
-    public var password: String = ""
+    var password: String = ""
 
     @Option(name = "-u", required = true, usage = "GeoServer username")
-    public var username: String = ""
-
+    var username: String = ""
 
 
     // receives other command line parameters than options
@@ -88,7 +85,4 @@ fun main(arguments : Array<String>) {
     else {
         println("Complete.")
     }
-
-
-
 }

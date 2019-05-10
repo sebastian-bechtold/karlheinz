@@ -53,7 +53,7 @@ class GeoServerSync(var _gs: GeoServerRestClient) {
                     return@forEach
                 }
 
-                print("Publish file '${it.name}' ... ")
+                //print("Publishing file '${it.name}' ... ")
 
                 println("HTTP " + _gs.uploadFile(it, "sld", ""))
             }
@@ -87,7 +87,7 @@ class GeoServerSync(var _gs: GeoServerRestClient) {
                 return@forEach
             }
 
-            print("Publish file '${it.name}' ... ")
+            //print("Publish file '${it.name}' ... ")
 
             var status = _gs.uploadFile(it, contentType, wsName)
 
@@ -107,8 +107,15 @@ class GeoServerSync(var _gs: GeoServerRestClient) {
 
             if (_gs.existsLayer(wsName + ":" + fileNameBase)) {
                 _gs.setLayerDefaultStyle(fileNameBase, it.name)
+
+                println("Set uploaded style '" + it.name + "' as default style for layer '" + fileNameBase + "'.")
+            }
+            else {
+                println("No layer named '" + fileNameBase + "' found.")
             }
             */
+
+
         }
         //###################### END Upload data source files ############################
 

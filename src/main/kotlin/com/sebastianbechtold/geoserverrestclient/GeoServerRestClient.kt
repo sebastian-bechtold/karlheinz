@@ -1,3 +1,6 @@
+// TODO: 3 Implement automatic creation of multiple layers from uploaded GeoPackage file
+// TODO: 3 What happens with .zip files?
+
 package com.sebastianbechtold.geoserverrestclient
 
 import java.io.*
@@ -36,6 +39,7 @@ class GeoServerRestClient(private val _geoServerUrl: String, username: String, p
             return urlRest + "/styles"
         }
 
+
     fun createWorkspace(name: String): Int {
 
         var xml = "<workspace><name>" + name + "</name></workspace>"
@@ -55,11 +59,13 @@ class GeoServerRestClient(private val _geoServerUrl: String, username: String, p
         return gsHttpRequest(urlWorkspaces + "/" + wsName, "GET") == 200;
     }
 
+
     fun getMimeType(file : File) : String? {
         var fileEnding = file.name.substring(file.name.lastIndexOf('.') + 1)
 
        return _mimeTypesMap[fileEnding]
     }
+
 
     fun gsHttpRequest(url : String, method : String, data : InputStream? = null, headers : Map<String, String> = mapOf()) : Int {
 
@@ -67,10 +73,9 @@ class GeoServerRestClient(private val _geoServerUrl: String, username: String, p
     }
 
 
-
     fun uploadFile(file : File, contentType : String, wsName : String) : Int {
 
-        // TODO: 3 Check existence of workspace before upload
+        // TODO: 3 Check existence of workspace before file upload
 
         var mimeType = getMimeType(file)
 
@@ -81,9 +86,12 @@ class GeoServerRestClient(private val _geoServerUrl: String, username: String, p
         when(contentType) {
             "shp", "gpkg" ->
             {
+                // NOTE: Setting of uploaded file type could also be done using the "accept" header. See
+                // https://docs.geoserver.org/latest/en/api/#/latest/en/api/1.0.0/datastores.yaml
+
                 var url = urlWorkspaces + "/" + wsName + "/" + "datastores/" + file.name + "/file." + contentType
 
-                println("Uploading geodataset " + file.name)
+                println("Uploading geodataset '$file.name'")
 
                 return gsHttpRequest(url, "PUT", FileInputStream(file), mapOf("Content-type" to mimeType))
             }
@@ -98,7 +106,7 @@ class GeoServerRestClient(private val _geoServerUrl: String, username: String, p
                 var url_create = baseUrl + "/styles?name=" + file.name
                 var url_update = baseUrl + "/styles/" + file.name + ".sld"
 
-                println("Uploading style " + file.name)
+                println("Uploading style '$file.name'")
 
                 // If resource exists, update file with PUT:
                 if (gsHttpRequest(url_update, "GET") == 200) {
