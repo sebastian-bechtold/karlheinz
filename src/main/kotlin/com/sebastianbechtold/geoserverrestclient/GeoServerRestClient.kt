@@ -1,5 +1,4 @@
-// TODO: 3 Implement automatic creation of multiple layers from uploaded GeoPackage file
-// TODO: 3 What happens with .zip files?
+
 
 package com.sebastianbechtold.geoserverrestclient
 

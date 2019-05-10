@@ -4,12 +4,6 @@ import com.sebastianbechtold.geoserverrestclient.GeoServerRestClient
 import java.io.File
 
 
-// TODO: 2 Upload data file and create layer separately, in order to be able to
-// set the layer name as identical to the data source name. This is necessary because
-// the automatically generated layer name is in many situations different from the name
-// of the uploaded file.
-
-
 // TODO: 4 Implement filename-based ignoring of files and folders (e.g. with leading '_')
 
 class GeoServerSync(var _gs: GeoServerRestClient) {
