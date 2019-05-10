@@ -70,6 +70,9 @@ class GeoServerSync(var _gs: GeoServerRestClient) {
             println("Workspace '${wsName}' already exists, no need to create it.")
         }
 
+
+        val styleFiles = ArrayList<File>()
+
         //###################### BEGIN Upload data source files ############################
         dir.listFiles().forEach {
 
@@ -84,35 +87,42 @@ class GeoServerSync(var _gs: GeoServerRestClient) {
                 println("Ignoring file with unknown content type: " + it.name)
                 return@forEach
             }
-
+            else if (contentType == "sld") {
+                styleFiles.add(it)
+            }
 
             var status = _gs.uploadFile(it, contentType, wsName)
-
             println("HTTP " + status)
+        }
+        //###################### END Upload data source files ############################
 
 
-            //####### BEGIN If a style was uploaded, try to set it as default style of layer with same name ########
+        //####### BEGIN Try to set each uploaded style file as default style of layer with same name ########
+
+        // NOTE: We do this in a separate loop after all data and style files were uploaded in order to make
+        // sure that all layers which are created from the uploaded data files already exist.
+
+        for(styleFile in styleFiles) {
 
             var fileNameBase = ""
 
-            if (it.name.endsWith("sld")) {
-                fileNameBase = it.name.substring(0, it.name.length - 4)
-            } else if (it.name.endsWith("sld.zip")) {
-                fileNameBase = it.name.substring(0, it.name.length - 8)
+            if (styleFile.name.endsWith("sld")) {
+                fileNameBase = styleFile.name.substring(0, styleFile.name.length - 4)
+            } else if (styleFile.name.endsWith("sld.zip")) {
+                fileNameBase = styleFile.name.substring(0, styleFile.name.length - 8)
             }
 
             val layerName = wsName + ":" + fileNameBase
 
             if (_gs.existsLayer(layerName)) {
 
-                println("Setting uploaded style '" + it.name + "' as default style for layer '" + layerName + "'.")
+                println("Setting uploaded style '" + styleFile.name + "' as default style for layer '" + layerName + "'.")
 
-                val status = _gs.setLayerDefaultStyle(layerName, it.name)
+                val status = _gs.setLayerDefaultStyle(layerName, styleFile.name)
 
                 println("HTTP " + status)
             }
-            //####### END If a style was uploaded, try to set it as default style of layer with same name ########
         }
-        //###################### END Upload data source files ############################
+        //####### END Try to set each uploaded style file as default style of layer with same name ########
     }
 }
