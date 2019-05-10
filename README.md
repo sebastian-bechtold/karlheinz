@@ -32,11 +32,9 @@ When a data source file is updated (i.e. re-uploaded and overwriting an existing
 
 As an "experimental" feature (yes, even *more* experimental than the whole program itself!), Karlheinz tries to automatically assign an uploaded SLD style as the default style of an existing layer if the following conditions are fulfilled:
 
-- The layer's name equals the style file's base name (file name without extension). For example, the style document "water.sld" would be assigned as the default style of the layer "water".
+- The layer's name equals the style file's base name (file name without extension). For example, the style document "water.sld" would be assigned as the default style of the layer "water". The same applies to an uploaded style file named "water.sld.zip".
 
 - The layer's data source resides in the same working space as the style. For global styles, no auto-assignment is performed.
-
-**NOTE: As of 2018-11-26, the layer auto-assignment feature is not available in the current master HEAD version**
 
 # Usage
 
