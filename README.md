@@ -1,24 +1,15 @@
-# Karlheinz: GeoServer data management made easy
+# Karlheinz - GeoServer data management made easy!
 Karlheinz is a command line tool for easy uploading and publishing of data files to a GeoServer instance, loosely inspired by file synchronization tools like Dropbox or OneDrive. Karlheinz is written in Kotlin and runs on the Java virtual machine.
 
 **Karlheinz is in a very early stage of development! Many planned features are still missing, very few sanity checks are performed, and there are probably still many bugs! USE AT YOUR OWN RISK!**
 
 # What's new?
 
+## 2019-06-10
+By default, Karlheinz does no longer overwrite existing data stores and styles. To force overwriting of existing data stores, add the command line flag '-od'. To force overwriting of existing styles, add the command line flag '-os'.
+
 ## 2019-05-10
-Karlheinz now supports the creation of layers from existing multi-layer data stores like PostgreSQL/PostGIS connections or GeoPackage SQLite files. To create a layer from an existing data store, 
-
-1. create a folder named "_<your-datastore-name>" inside a workspace folder. The workspace should contain a data store with the respective name. This could be a GeoPackage file in the same folder which is uploaded by Karlheinz, a PostGIS connection, or any other type of GeoServer data store.
-  
-2. Within that folder, for each layer that you want to create, place an .xml file with an XML document that conforms to the following (minimal) scheme:
-
-```
-<featureType>
-  <name>name-of-the-database-table-to-publish</name>
-  <nativeName>name-of-the-database-table-to-publish</nativeName>
-</featureType>
-```
-Additional XML elements can be added according to the GeoServer feature type XML schema.
+Karlheinz now supports the creation of layers from existing multi-layer data stores like PostgreSQL/PostGIS connections or GeoPackage SQLite files. 
 
 # How does it work?
 
@@ -33,12 +24,12 @@ When started, Karlheinz scans a user-specified directory on your computer for su
 - A ".sld.zip" file is expected to be a zip archive that contains a Style Layer Descriptor (SLD) XML document. The SLD document will be installed as a style in your GeoServer instance.
 
 
-
 File types are currently determined by the file ending (sequence of characters after the last occurence of '.' in the file name). 
 
-**CAUTION**: Note that Karlheinz will **overwrite** a data set with the same name if such one exists on the GeoServer instance! 
+## Overwriting and deleting of existing resources
+By default, Karlheinz does not overwrite existing data stores and styles. To force overwriting of existing data stores, add the command line flag '-od'. To force overwriting of existing styles, add the command line flag '-os'.
 
-Also note that Karlheinz will *not* delete a workspace, data set or layer from the GeoServer instance if you delete the corresponding file from your sync dir. Such a "delete mode" might be added as optional behavior in a future version.
+Karlheinz will not delete a workspace, data set or layer from the GeoServer instance if you delete the corresponding file from your upload dir. Such a "delete mode" might be added as optional behavior in a future version.
 
 
 ## GeoServer behaviour on data source updates
@@ -47,13 +38,15 @@ When a data source file is updated (i.e. re-uploaded and overwriting an existing
 
 ## Auto-assignment of layer styles
 
-As an "experimental" feature (yes, even *more* experimental than the whole program itself!), Karlheinz tries to automatically assign an uploaded SLD style as the default style of an existing layer if the following conditions are fulfilled:
+Karlheinz can automatically assign an uploaded SLD style as the default style of an existing layer if the following conditions are fulfilled:
 
 - The layer's name equals the style file's base name (file name without extension). For example, the style document "water.sld" would be assigned as the default style of the layer "water". The same applies to an uploaded style file named "water.sld.zip".
 
 - The layer's data source resides in the same working space as the style. For global styles, no auto-assignment is performed.
 
 # Usage
+
+## Basic usage
 
 Karlheinz is a command line tool that comes as a Java .jar runnable archive. You can use it like this:
 
@@ -66,6 +59,23 @@ Example:
 java -jar karlheinz.jar -dir /home/me/geoserver_upload -url http://192.168.56.101:8080/geoserver/ -u admin -p topsecret 
 ```
 
+## Creating layers from existing data stores
+
+To create a layer from an existing data store, 
+
+1. create a folder named "_<your-datastore-name>" inside a workspace folder. The workspace should contain a data store with the respective name. This could be a GeoPackage file in the same folder which is uploaded by Karlheinz, a PostGIS connection, or any other type of GeoServer data store.
+  
+2. Within that folder, for each layer that you want to create, place an .xml file with an XML document that conforms to the following (minimal) scheme:
+
+```
+<featureType>
+  <name>name-of-the-database-table-to-publish</name>
+  <nativeName>name-of-the-database-table-to-publish</nativeName>
+</featureType>
+```
+Additional XML elements can be added according to the GeoServer feature type XML schema.
+
+
 # Future Development
 
 Future improvements could include:
@@ -74,8 +84,8 @@ Future improvements could include:
 
 - Support for additional file types like GeoJson and CSV, which are not natively supported by GeoServer, by converting them to GeoPackage before upload.
 
-- Adding of a "watch mode" where the program keeps running in the background, monitors changes in the sync directory and uploads changed files automatically
+- Adding of a "watch mode" where the program keeps running in the background, monitors changes in the upload directory and uploads changed files automatically
 
-- Adding of a "delete mode" that removes layers, data sources and other items from the GeoServer instance if their corresponding "origin" files in the sync folder were deleted.
+- Adding of a "delete mode" that removes layers, data sources and other items from the GeoServer instance if their corresponding "origin" files in the upload folder were deleted.
 
 - More sanity checks
