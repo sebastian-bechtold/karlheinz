@@ -12,7 +12,7 @@ import java.io.File
 
 class Args {
 
-    @Option(name = "-dir", required = true, usage = "Directory to synchronize")
+    @Option(name = "-dir", required = true, usage = "Directory to upload")
     var syncDir: String = ""
 
     @Option(name = "-url", required = true, usage = "GeoServer URL")
@@ -23,6 +23,12 @@ class Args {
 
     @Option(name = "-u", required = true, usage = "GeoServer username")
     var username: String = ""
+
+    @Option(name = "-od", required = false, usage = "Overwrite data stores?")
+    var overwriteDataStores: Boolean = false
+
+    @Option(name = "-os", required = false, usage = "Overwrite styles?")
+    var overwriteStyles: Boolean = true
 
 
     // receives other command line parameters than options
@@ -73,14 +79,14 @@ fun main(arguments : Array<String>) {
     args.init(arguments)
 
 
-    var syncer = GeoServerSync(GeoServerRestClient(args.geoServerUrl, args.username, args.password))
+    var syncer = GeoServerSync(GeoServerRestClient(args.geoServerUrl, args.username, args.password), args.overwriteDataStores, args.overwriteStyles)
 
-    println("Starting synchronization with GeoServer at " + args.geoServerUrl)
+    println("Starting upload to GeoServer at " + args.geoServerUrl)
 
     var result = syncer.syncDir(File(args.syncDir))
 
     if (!result) {
-        println("ERROR: Invalid sync directory")
+        println("ERROR: Invalid upload directory")
     }
     else {
         println("Complete.")

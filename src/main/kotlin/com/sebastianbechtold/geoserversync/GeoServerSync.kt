@@ -8,24 +8,7 @@ import java.net.URLEncoder
 
 // TODO: 4 Implement filename-based ignoring of files and folders (e.g. with leading '_')
 
-class GeoServerSync(var _gs: GeoServerRestClient) {
-
-    fun getContentTypeFromFileName(name: String): String {
-
-        // TODO: 3 Replace this with loop over map (file ending -> content type)
-
-        if (name.endsWith(".shp.zip")) {
-            return "shp"
-        } else if (name.endsWith(".gpkg")) {
-            return "gpkg"
-        } else if (name.endsWith(".sld")) {
-            return "sld"
-        } else if (name.endsWith(".sld.zip")) {
-            return "sld"
-        }
-
-        return ""
-    }
+class GeoServerSync(var _gs: GeoServerRestClient, var overwriteDataStores : Boolean = false, val overwriteStyles : Boolean = true) {
 
 
     fun syncDir(dir: File): Boolean {
@@ -42,14 +25,14 @@ class GeoServerSync(var _gs: GeoServerRestClient) {
                 syncWorkspace(it, it.name)
             } else if (it.isFile()) {
 
-                var contentType = getContentTypeFromFileName(it.name)
+                var contentType = _gs.getContentTypeFromFileName(it.name)
 
                 if (contentType != "sld") {
                     println("Ignoring file with invalid content type in upload root folder: '$it.name'. In the root folder, only style files (.sld and .sld.zip) are processed.")
                     return@forEach
                 }
 
-                println("HTTP " + _gs.uploadFile(it, "sld", ""))
+                println("HTTP " + _gs.uploadFile(it, "sld", overwriteStyles))
             }
         }
 
@@ -106,7 +89,7 @@ class GeoServerSync(var _gs: GeoServerRestClient) {
             }
 
 
-            var contentType = getContentTypeFromFileName(it.name)
+            var contentType = _gs.getContentTypeFromFileName(it.name)
 
             when (contentType) {
                 "sld" -> {
@@ -114,7 +97,7 @@ class GeoServerSync(var _gs: GeoServerRestClient) {
                 }
 
                 "shp", "gpkg" -> {
-                    var status = _gs.uploadFile(it, contentType, wsName)
+                    var status = _gs.uploadFile(it, wsName, overwriteDataStores)
                     println("HTTP " + status)
                 }
             }
@@ -134,8 +117,7 @@ class GeoServerSync(var _gs: GeoServerRestClient) {
         for (styleFile in styleFiles) {
 
             // First, upload the style file:
-            var contentType = getContentTypeFromFileName(styleFile.name)
-            var status = _gs.uploadFile(styleFile, contentType, wsName)
+            var status = _gs.uploadFile(styleFile, wsName, overwriteStyles)
             println("HTTP " + status)
 
 

@@ -18,27 +18,11 @@ class GeoServerRestClient(private val _geoServerUrl: String, username: String, p
                                 "zip" to "application/zip",
                                 "xml" to "application/xml")
 
-    //############## BEGIN urlRest property ###############
-    val urlRest: String
-        get() {
-            return _geoServerUrl + "rest"
-        }
-    //############## END urlRest property ###############
 
-    val urlWorkspaces: String
-        get() {
-            return urlRest + "/workspaces"
-        }
-
-    val urlLayers: String
-        get() {
-            return urlRest + "/layers"
-        }
-
-    val urlStyles: String
-        get() {
-            return urlRest + "/styles"
-        }
+    val urlRest = _geoServerUrl + "rest"
+    val urlWorkspaces = urlRest + "/workspaces"
+    val urlLayers = urlRest + "/layers"
+    val urlStyles = urlRest + "/styles"
 
 
     fun createWorkspace(name: String): Int {
@@ -61,8 +45,26 @@ class GeoServerRestClient(private val _geoServerUrl: String, username: String, p
     }
 
 
-    fun getMimeType(file : File) : String? {
-        var fileEnding = file.name.substring(file.name.lastIndexOf('.') + 1)
+    fun getContentTypeFromFileName(name: String): String {
+
+        // TODO: 3 Replace this with loop over map (file ending -> content type)
+
+        if (name.endsWith(".shp.zip")) {
+            return "shp"
+        } else if (name.endsWith(".gpkg")) {
+            return "gpkg"
+        } else if (name.endsWith(".sld")) {
+            return "sld"
+        } else if (name.endsWith(".sld.zip")) {
+            return "sld"
+        }
+
+        return ""
+    }
+
+
+    fun getMimeTypeFromFileName(fileName : String) : String? {
+        var fileEnding = fileName.substring(fileName.lastIndexOf('.') + 1)
 
        return _mimeTypesMap[fileEnding]
     }
@@ -85,11 +87,12 @@ class GeoServerRestClient(private val _geoServerUrl: String, username: String, p
     }
 
 
-    fun uploadFile(file : File, contentType : String, wsName : String) : Int {
+    fun uploadFile(file : File, wsName : String, overwrite : Boolean) : Int {
 
         // TODO: 3 Check existence of workspace before file upload
 
-        var mimeType = getMimeType(file)
+        val contentType = getContentTypeFromFileName(file.name)
+        val mimeType = getMimeTypeFromFileName(file.name)
 
         if (mimeType == null) {
             return 0
@@ -103,6 +106,12 @@ class GeoServerRestClient(private val _geoServerUrl: String, username: String, p
 
                 var url = urlWorkspaces + "/" + wsName + "/" + "datastores/" + file.name + "/file." + contentType
 
+                val resourceExists = (gsHttpRequest(url, "GET") == 200)
+
+                if (resourceExists && !overwrite) {
+                    println("Data set '${file.name}' already exists and overwrite is disabled!")
+                    return 0
+                }
 
                 println("Uploading geodataset '${file.name}'")
 
@@ -120,10 +129,17 @@ class GeoServerRestClient(private val _geoServerUrl: String, username: String, p
                 var url_create = baseUrl + "/styles?name=" + file.name
                 var url_update = baseUrl + "/styles/" + file.name + ".sld"
 
+                val resourceExists = (gsHttpRequest(url_update, "GET") == 200)
+
+                if (resourceExists && !overwrite) {
+                    println("Style '${file.name}' already exists and overwrite is disabled!")
+                    return 0
+                }
+
                 println("Uploading style '${file.name}'")
 
                 // If resource exists, update file with PUT:
-                if (gsHttpRequest(url_update, "GET") == 200) {
+                if (resourceExists) {
                     return gsHttpRequest(url_update, "PUT", FileInputStream(file), mapOf("Content-type" to mimeType))
                 }
                 // Otherwise, create file with POST:
@@ -132,6 +148,8 @@ class GeoServerRestClient(private val _geoServerUrl: String, username: String, p
                 }
             }
         }
+
+
 
         return 0
     }
