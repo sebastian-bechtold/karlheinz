@@ -11,7 +11,7 @@ class TestGeoServerSync {
     @Test
     fun passingNonExistentDirShouldReturnFalse() {
 
-        var syncer = GeoServerSync(GeoServerRestClient("","",""))
+        var syncer = GeoServerSync(GeoServerRestClient("","",""), false, false)
 
         var dir = File("nonExistentDir")
 

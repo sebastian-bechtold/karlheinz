@@ -1,14 +1,13 @@
 
 import com.sebastianbechtold.geoserverrestclient.GeoServerRestClient
 import com.sebastianbechtold.geoserversync.GeoServerSync
-import com.sebastianbechtold.nanohttp.httpRequest
 import org.kohsuke.args4j.Argument
-import org.kohsuke.args4j.Option
 import org.kohsuke.args4j.CmdLineException
 import org.kohsuke.args4j.CmdLineParser
+import org.kohsuke.args4j.Option
 import org.kohsuke.args4j.OptionHandlerFilter.ALL
-import java.util.ArrayList
 import java.io.File
+import java.util.*
 
 class Args {
 
@@ -28,7 +27,7 @@ class Args {
     var overwriteDataStores: Boolean = false
 
     @Option(name = "-os", required = false, usage = "Overwrite styles?")
-    var overwriteStyles: Boolean = true
+    var overwriteStyles: Boolean = false
 
 
     // receives other command line parameters than options

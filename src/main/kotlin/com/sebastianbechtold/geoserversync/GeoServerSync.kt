@@ -8,7 +8,7 @@ import java.net.URLEncoder
 
 // TODO: 4 Implement filename-based ignoring of files and folders (e.g. with leading '_')
 
-class GeoServerSync(var _gs: GeoServerRestClient, var overwriteDataStores : Boolean = false, val overwriteStyles : Boolean = true) {
+class GeoServerSync(var _gs: GeoServerRestClient, var overwriteDataStores : Boolean, val overwriteStyles : Boolean) {
 
 
     fun syncDir(dir: File): Boolean {
