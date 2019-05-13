@@ -61,7 +61,7 @@ class GeoServerRestClient(private val _geoServerUrl: String, username: String, p
         } else if (name.endsWith(".sld")) {
             return "sld"
         } else if (name.endsWith(".sld.zip")) {
-            return "sld"
+            return "sld.zip"
         } else if (name.endsWith(".xml")) {
             return "xml"
         }
@@ -120,7 +120,8 @@ class GeoServerRestClient(private val _geoServerUrl: String, username: String, p
                 // NOTE: Setting of uploaded file type could also be done using the "accept" header. See
                 // https://docs.geoserver.org/latest/en/api/#/latest/en/api/1.0.0/datastores.yaml
 
-                url = urlWorkspaces + "/" + wsName + "/" + "datastores/" + file.name + "/file." + contentType
+                // TODO: 2 This will probably not create the data store name we want
+                url = urlWorkspaces + "/" + wsName + "/" + "datastores/" + file.nameWithoutExtension + "/file." + contentType
                 httpMethod = "PUT"
 
                 resourceExists = (gsHttpRequest(url, "GET") == 200)
@@ -134,8 +135,8 @@ class GeoServerRestClient(private val _geoServerUrl: String, username: String, p
                     baseUrl = urlWorkspaces + "/" + wsName
                 }
 
-                var url_create = baseUrl + "/styles?name=" + file.name
-                var url_update = baseUrl + "/styles/" + file.name + ".sld"
+                var url_create = baseUrl + "/styles?name=" + file.nameWithoutExtension
+                var url_update = baseUrl + "/styles/" + file.nameWithoutExtension + ".sld"
 
                 resourceExists = (gsHttpRequest(url_update, "GET") == 200)
 
@@ -151,6 +152,36 @@ class GeoServerRestClient(private val _geoServerUrl: String, username: String, p
                 }
             }
 
+            "sld.zip" -> {
+
+                var baseUrl = urlRest
+
+                if (wsName != "") {
+                    baseUrl = urlWorkspaces + "/" + wsName
+                }
+
+                var fileNameBase = file.nameWithoutExtension.substring(0, file.nameWithoutExtension.length - 4)
+
+
+                var url_create = baseUrl + "/styles?name=" + fileNameBase
+                var url_update = baseUrl + "/styles/" + fileNameBase + ".sld"
+
+                resourceExists = (gsHttpRequest(url_update, "GET") == 200)
+
+                // If resource exists, update file with PUT:
+                if (resourceExists) {
+                    url = url_update
+                    httpMethod = "PUT"
+                }
+                // Otherwise, create file with POST:
+                else {
+                    url = url_create
+                    httpMethod = "POST"
+                }
+            }
+
+
+
             "xml" -> {
 
                 var baseUrl = urlRest
@@ -160,7 +191,7 @@ class GeoServerRestClient(private val _geoServerUrl: String, username: String, p
                 }
 
                 var url_create = baseUrl + "/datastores"
-                var url_update = baseUrl + "/datastores/" + file.name
+                var url_update = baseUrl + "/datastores/" + file.nameWithoutExtension
 
                 resourceExists = (gsHttpRequest(url_update, "GET") == 200)
 
@@ -182,12 +213,20 @@ class GeoServerRestClient(private val _geoServerUrl: String, username: String, p
             return 0
         }
 
-        if (resourceExists && !overwrite) {
-            println("Resource '${file.name}' already exists and overwrite is disabled!")
-            return 0
-        }
+        if (resourceExists) {
 
-        println("Uploading resource '${file.name}'")
+            if (!overwrite) {
+                println("Resource '${file.nameWithoutExtension}' already exists and overwrite is disabled!")
+                return 0
+
+            }
+
+            println("Updating resource '${file.name}'")
+
+        } else {
+            println("Creating resource '${file.name}'")
+
+        }
 
         return gsHttpRequest(url, httpMethod, FileInputStream(file), mapOf("Content-type" to mimeType))
     }

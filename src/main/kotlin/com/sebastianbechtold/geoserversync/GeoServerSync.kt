@@ -92,7 +92,7 @@ class GeoServerSync(var _gs: GeoServerRestClient, var overwriteDataStores : Bool
             var contentType = _gs.getContentTypeFromFileName(it.name)
 
             when (contentType) {
-                "sld" -> {
+                "sld", "sld.zip" -> {
                     styleFiles.add(it)
                 }
 
@@ -131,9 +131,10 @@ class GeoServerSync(var _gs: GeoServerRestClient, var overwriteDataStores : Bool
             var fileNameBase = ""
 
             if (styleFile.name.endsWith("sld")) {
-                fileNameBase = styleFile.name.substring(0, styleFile.name.length - 4)
+                //fileNameBase = styleFile.name.substring(0, styleFile.name.length - 4)
+                fileNameBase = styleFile.nameWithoutExtension
             } else if (styleFile.name.endsWith("sld.zip")) {
-                fileNameBase = styleFile.name.substring(0, styleFile.name.length - 8)
+                fileNameBase = styleFile.nameWithoutExtension.substring(0, styleFile.nameWithoutExtension.length - 4)
             }
 
             val layerName = wsName + ":" + fileNameBase
@@ -142,7 +143,7 @@ class GeoServerSync(var _gs: GeoServerRestClient, var overwriteDataStores : Bool
 
                 println("Setting uploaded style '${styleFile.name}' as default style for layer '${layerName}'.")
 
-                val status = _gs.setLayerDefaultStyle(layerName, styleFile.name)
+                val status = _gs.setLayerDefaultStyle(layerName, fileNameBase)
 
                 println("HTTP " + status)
             }
