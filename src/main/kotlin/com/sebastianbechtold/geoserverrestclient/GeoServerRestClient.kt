@@ -62,6 +62,8 @@ class GeoServerRestClient(private val _geoServerUrl: String, username: String, p
             return "sld"
         } else if (name.endsWith(".sld.zip")) {
             return "sld"
+        } else if (name.endsWith(".xml")) {
+            return "xml"
         }
 
         return ""
@@ -134,6 +136,31 @@ class GeoServerRestClient(private val _geoServerUrl: String, username: String, p
 
                 var url_create = baseUrl + "/styles?name=" + file.name
                 var url_update = baseUrl + "/styles/" + file.name + ".sld"
+
+                resourceExists = (gsHttpRequest(url_update, "GET") == 200)
+
+                // If resource exists, update file with PUT:
+                if (resourceExists) {
+                    url = url_update
+                    httpMethod = "PUT"
+                }
+                // Otherwise, create file with POST:
+                else {
+                    url = url_create
+                    httpMethod = "POST"
+                }
+            }
+
+            "xml" -> {
+
+                var baseUrl = urlRest
+
+                if (wsName != "") {
+                    baseUrl = urlWorkspaces + "/" + wsName
+                }
+
+                var url_create = baseUrl + "/datastores"
+                var url_update = baseUrl + "/datastores/" + file.name
 
                 resourceExists = (gsHttpRequest(url_update, "GET") == 200)
 

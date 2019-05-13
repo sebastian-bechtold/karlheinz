@@ -100,6 +100,11 @@ class GeoServerSync(var _gs: GeoServerRestClient, var overwriteDataStores : Bool
                     var status = _gs.uploadFile(it, wsName, overwriteDataStores)
                     println("HTTP " + status)
                 }
+
+                "xml" -> {
+                    var status = _gs.uploadFile(it, wsName, overwriteDataStores)
+                    println("HTTP " + status)
+                }
             }
         }
         //###################### END Upload data source files ############################
