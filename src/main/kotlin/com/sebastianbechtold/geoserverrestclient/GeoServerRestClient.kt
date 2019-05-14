@@ -46,13 +46,13 @@ class GeoServerRestClient(private val _geoServerUrl: String, username: String, p
 
 
     fun deleteDataStore(wsName: String, dataStoreName: String, deleteNonEmpty: Boolean): Int {
+
         var url = urlWorkspaces + "/" + wsName + "/" + "datastores/" + dataStoreName
 
         if (deleteNonEmpty) {
             url += "?recurse=true"
         }
 
-        println(url)
         return gsHttpRequest(url, "DELETE")
     }
 
@@ -95,34 +95,18 @@ class GeoServerRestClient(private val _geoServerUrl: String, username: String, p
     }
 
 
-    fun gsHttpRequest(
-        url: String,
-        method: String,
-        data: InputStream? = null,
-        headers: Map<String, String> = mapOf()
-    ): Int {
+    fun gsHttpRequest(url: String, method: String, data: InputStream? = null, headers: Map<String, String> = mapOf()): Int {
 
-        var statusCode = 0
-
-
-        //try {
-            statusCode = com.sebastianbechtold.nanohttp.httpRequest(url, method, data, headers + _authHeaders).statusCode;
-/*
-        } catch (exception: IOException) {
-            //println (exception.message)
-        }
-*/
-        return statusCode
+        return com.sebastianbechtold.nanohttp.httpRequest(url, method, data, headers + _authHeaders).statusCode;
     }
 
-
-    // TODO 3: Redesign this. A response code != 200 could mean something other than that the workspace does not exist!
+    
     fun layerExists(layerName: String): Boolean {
         return gsHttpRequest(urlLayers + "/" + layerName, "GET") == 200;
     }
 
 
-    fun uploadDataStoreXml(wsName : String, it : File, overwrite:  Boolean) : Int {
+    fun uploadDataStoreXml(wsName: String, it: File, overwrite: Boolean): Int {
 
         val mimeType = getMimeTypeFromFileName(it.name)
 
