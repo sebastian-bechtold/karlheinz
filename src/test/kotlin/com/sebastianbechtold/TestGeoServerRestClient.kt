@@ -38,6 +38,22 @@ class TestGeoServerRestClient {
 
 
     @Test
+    fun uploadFeatureType() {
+
+        gs.deleteWorkspace(testWsName, true)
+
+        gs.createWorkspace(testWsName)
+
+        assertEquals(201,gs.uploadDataStore(testWsName, File(testDataDir + "test.gpkg"), false))
+
+        assertEquals(201, gs.uploadFeatureTypeXml(testWsName, "test", File(testDataDir + "raumeinheiten_32632.xml"), false))
+
+        assertEquals(200, gs.uploadFeatureTypeXml(testWsName, "test", File(testDataDir + "raumeinheiten_32632.xml"), true))
+
+    }
+
+
+    @Test
     fun uploadGpkg() {
 
         gs.createWorkspace(testWsName)

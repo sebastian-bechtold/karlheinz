@@ -211,16 +211,22 @@ class GeoServerRestClient(private val _geoServerUrl: String, username: String, p
 
         println("Uploading feature type definition '${file.name}'")
 
-        return upload(url, url_get, httpMethod, file, overwrite)
+        var resourceExists = (gsHttpRequest(url_get, "GET") == 200)
+
+        // If resource exists, update file with PUT:
+        if (resourceExists) {
+            return upload(url_get, url_get, "PUT", file, overwrite)
+        }
+        // Otherwise, create file with POST:
+        else {
+            return upload(url, url_get, "POST", file, overwrite)
+        }
+
+        //return upload(url, url_get, httpMethod, file, overwrite)
     }
 
 
     fun uploadStyle(wsName: String, file: File, overwrite: Boolean): Int {
-
-        var url = ""
-        var httpMethod = ""
-
-        var resourceExists = true
 
         var baseUrl = urlRest
 
@@ -229,21 +235,17 @@ class GeoServerRestClient(private val _geoServerUrl: String, username: String, p
         }
 
         var url_create = baseUrl + "/styles?name=" + file.nameWithoutExtension
-        var url_update = baseUrl + "/styles/" + file.nameWithoutExtension + ".sld"
+        var url_get = baseUrl + "/styles/" + file.nameWithoutExtension + ".sld"
 
-        resourceExists = (gsHttpRequest(url_update, "GET") == 200)
+        var resourceExists = (gsHttpRequest(url_get, "GET") == 200)
 
         // If resource exists, update file with PUT:
         if (resourceExists) {
-            url = url_update
-            httpMethod = "PUT"
+            return upload(url_get, url_get, "PUT", file, overwrite)
         }
         // Otherwise, create file with POST:
         else {
-            url = url_create
-            httpMethod = "POST"
+            return upload(url_create, url_get, "POST", file, overwrite)
         }
-
-        return upload(url, url_update, httpMethod, file, overwrite)
     }
 }
