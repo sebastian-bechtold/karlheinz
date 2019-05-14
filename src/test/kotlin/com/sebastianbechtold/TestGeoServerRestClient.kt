@@ -17,7 +17,7 @@ class TestGeoServerRestClient {
 
     var gs = GeoServerRestClient(geoserverUrl, username, password)
 
-    var testDataDir = "testData/"
+    var testDataDir = "testData/testUploadDir/test/"
 
     var testWsName = "test"
 
@@ -49,10 +49,10 @@ class TestGeoServerRestClient {
         assertEquals(201,gs.uploadDataStore(testWsName, File(testDataDir + "test_gpkg.gpkg"), false))
 
         // Create:
-        assertEquals(201, gs.uploadFeatureTypeXml(testWsName, "test_gpkg", File(testDataDir + "raumeinheiten_32632.xml"), false))
+        assertEquals(201, gs.uploadFeatureTypeXml(testWsName, "test_gpkg", File(testDataDir + "test_gpkg/raumeinheiten_32632.xml"), false))
 
         // Update:
-        assertEquals(200, gs.uploadFeatureTypeXml(testWsName, "test_gpkg", File(testDataDir + "raumeinheiten_32632.xml"), true))
+        assertEquals(200, gs.uploadFeatureTypeXml(testWsName, "test_gpkg", File(testDataDir + "test_gpkg/raumeinheiten_32632.xml"), true))
 
         // Cleanup:
         assertEquals(200, gs.deleteWorkspace(testWsName, true))
@@ -98,10 +98,10 @@ class TestGeoServerRestClient {
         gs.deleteStyle("", "heatmap")
 
         // Create:
-        assertEquals(201, gs.uploadStyle("", File(testDataDir + "heatmap.sld"), false))
+        assertEquals(201, gs.uploadStyle("", File(testDataDir + "styles/heatmap.sld"), false))
 
         // Update:
-        assertEquals(200, gs.uploadStyle("", File(testDataDir + "heatmap.sld"), true))
+        assertEquals(200, gs.uploadStyle("", File(testDataDir + "styles/heatmap.sld"), true))
 
         // Cleanup:
         assertEquals(200,gs.deleteStyle("", "heatmap"))
@@ -116,10 +116,10 @@ class TestGeoServerRestClient {
         assertEquals(201, gs.createWorkspace(testWsName))
 
         // Create style:
-        assertEquals(201, gs.uploadStyle(testWsName, File(testDataDir + "heatmap.sld"), false))
+        assertEquals(201, gs.uploadStyle(testWsName, File(testDataDir + "styles/heatmap.sld"), false))
 
         // Update style:
-        assertEquals(200, gs.uploadStyle(testWsName, File(testDataDir + "heatmap.sld"), true))
+        assertEquals(200, gs.uploadStyle(testWsName, File(testDataDir + "styles/heatmap.sld"), true))
 
         // Cleanup:
         assertEquals(200, gs.deleteWorkspace(testWsName, true))
