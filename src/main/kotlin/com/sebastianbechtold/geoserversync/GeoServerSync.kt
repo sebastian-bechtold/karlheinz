@@ -3,7 +3,6 @@ package com.sebastianbechtold.geoserversync
 import com.sebastianbechtold.geoserverrestclient.GeoServerRestClient
 import java.io.File
 import java.io.FileInputStream
-import java.net.URLEncoder
 
 
 // TODO: 4 Implement filename-based ignoring of files and folders (e.g. with leading '_')
@@ -11,7 +10,7 @@ import java.net.URLEncoder
 class GeoServerSync(var _gs: GeoServerRestClient, var overwriteDataStores : Boolean, val overwriteStyles : Boolean) {
 
 
-    fun syncDir(dir: File): Boolean {
+    fun uploadDir(dir: File): Boolean {
 
         if (!dir.exists() || !dir.isDirectory()) {
             return false
@@ -25,14 +24,11 @@ class GeoServerSync(var _gs: GeoServerRestClient, var overwriteDataStores : Bool
                 syncWorkspace(it, it.name)
             } else if (it.isFile()) {
 
-                var contentType = _gs.getContentTypeFromFileName(it.name)
-
-                if (contentType != "sld") {
-                    println("Ignoring file with invalid content type in upload root folder: '$it.name'. In the root folder, only style files (.sld and .sld.zip) are processed.")
-                    return@forEach
+                when(it.extension) {
+                    "sld", "xml", "zip" -> {
+                        println("HTTP " + _gs.uploadStyle("", it, overwriteStyles))
+                    }
                 }
-
-                println("HTTP " + _gs.uploadFile(it, "sld", overwriteStyles))
             }
         }
 
@@ -40,33 +36,10 @@ class GeoServerSync(var _gs: GeoServerRestClient, var overwriteDataStores : Bool
     }
 
 
-    fun createFeatureTypes(wsName: String, dir: File) {
 
-        dir.listFiles().forEach {
+    fun syncWorkspace(workspaceDir: File, wsName: String = workspaceDir.name) {
 
-            if (!it.isFile()) {
-                return@forEach
-            }
-
-            var datastoreName = URLEncoder.encode(dir.name.substring(1))
-
-            var url = _gs.urlWorkspaces + "/" + wsName + "/datastores/${datastoreName}/featuretypes/"
-
-
-            var mimeType = "application/xml"
-
-            println("Uploading feature type definition '${it.name}'")
-
-            var statusCode = _gs.gsHttpRequest(url, "POST", FileInputStream(it), mapOf("Content-type" to mimeType))
-
-            println("HTTP " + statusCode)
-        }
-    }
-
-
-    fun syncWorkspace(dir: File, wsName: String = dir.name) {
-
-        if (!_gs.existsWorkspace(wsName)) {
+        if (!_gs.workspaceExists(wsName)) {
             println("Creating workspace '${wsName}' ... ")
             println("HTTP " + _gs.createWorkspace(wsName))
         } else {
@@ -74,55 +47,49 @@ class GeoServerSync(var _gs: GeoServerRestClient, var overwriteDataStores : Bool
         }
 
 
-        val styleFiles = ArrayList<File>()
-        val folders = ArrayList<File>()
-        val datasets = ArrayList<File>()
+        val dataStoreFolders = ArrayList<File>()
+        val dataStoreFiles = ArrayList<File>()
+
 
         //###################### BEGIN Upload data source files ############################
-        dir.listFiles().forEach {
+        workspaceDir.listFiles().forEach {
 
             if (it.isDirectory) {
-                folders.add(it)
-            }
 
-            if (!it.isFile()) {
-                return@forEach
-            }
-
-
-            var contentType = _gs.getContentTypeFromFileName(it.name)
-
-            when (contentType) {
-                "sld", "sld.zip" -> {
-                    styleFiles.add(it)
+                if (it.name != "styles") {
+                    dataStoreFolders.add(it)
                 }
+            }
+            else {
+                when (it.extension) {
 
-                "shp", "gpkg" -> {
-                    datasets.add(it)
-                }
-
-                "xml" -> {
-                    var status = _gs.uploadFile(it, wsName, overwriteDataStores)
-                    println("HTTP " + status)
+                    "shp", "gpkg" -> {
+                        dataStoreFiles.add(it)
+                    }
                 }
             }
         }
         //###################### END Upload data source files ############################
 
 
-        uploadDatasets(wsName, datasets)
+        uploadDataStores(wsName, dataStoreFiles)
 
-        uploadFeatureTypes(wsName, folders)
+        uploadFeatureTypes(wsName, dataStoreFolders)
 
-        uploadStyles(wsName, styleFiles)
 
+        // Upload styles:
+        var stylesFolder = File(workspaceDir.path + "/styles")
+
+        if (stylesFolder.exists()) {
+            uploadStyles(wsName, stylesFolder)
+        }
     }
 
 
-    fun uploadDatasets(wsName : String, datasetFiles : ArrayList<File>) {
+    fun uploadDataStores(wsName : String, dataStoreFiles : ArrayList<File>) {
 
-        for(it in datasetFiles) {
-            var status = _gs.uploadFile(it, wsName, overwriteDataStores)
+        for(it in dataStoreFiles) {
+            var status = _gs.uploadDataStore(wsName,it,overwriteDataStores)
             println("HTTP " + status)
         }
     }
@@ -130,12 +97,31 @@ class GeoServerSync(var _gs: GeoServerRestClient, var overwriteDataStores : Bool
 
     fun uploadFeatureTypes(wsName : String, datasetFolders : ArrayList<File>) {
 
-        for (folder in datasetFolders) {
-            createFeatureTypes(wsName, folder)
+        for (dir in datasetFolders) {
+            dir.listFiles().forEach {
+
+                if (!it.isFile()) {
+                    return@forEach
+                }
+
+                var statusCode = _gs.uploadFeatureType(wsName, dir.name, it)
+
+                /*
+                var url = _gs.urlWorkspaces + "/" + wsName + "/datastores/${dir.name}/featuretypes/"
+
+                var mimeType = "application/xml"
+
+                println("Uploading feature type definition '${it.name}'")
+
+                var statusCode = _gs.gsHttpRequest(url, "POST", FileInputStream(it), mapOf("Content-type" to mimeType))
+                */
+                println("HTTP " + statusCode)
+            }
         }
     }
 
 
+    /*
     fun uploadStyles(wsName : String, styleFiles: ArrayList<File>) {
 
         //####### BEGIN Try to set each uploaded style file as default style of layer with same name ########
@@ -162,7 +148,7 @@ class GeoServerSync(var _gs: GeoServerRestClient, var overwriteDataStores : Bool
 
             val layerName = wsName + ":" + fileNameBase
 
-            if (_gs.existsLayer(layerName)) {
+            if (_gs.layerExists(layerName)) {
 
                 println("Setting uploaded style '${it.name}' as default style for layer '${layerName}'.")
 
@@ -172,5 +158,40 @@ class GeoServerSync(var _gs: GeoServerRestClient, var overwriteDataStores : Bool
             }
         }
         //####### END Try to set each uploaded style file as default style of layer with same name ########
+    }
+    */
+
+
+    fun uploadStyles(wsName : String, stylesFolder : File) {
+
+        stylesFolder.listFiles().forEach {
+
+            when(it.extension) {
+                "xml", "sld", "zip" -> { } // carry on
+
+                else -> {
+                    return@forEach
+                }
+            }
+
+
+            var status = _gs.uploadStyle(wsName, it, overwriteStyles)
+            println("HTTP " + status)
+
+
+            //####### BEGIN Try to set style file as default style of layer with same name ########
+            val layerName = wsName + ":" +  it.nameWithoutExtension
+
+            if (_gs.layerExists(layerName)) {
+
+                println("Setting uploaded style '${it.name}' as default style for layer '${layerName}'.")
+
+                val status = _gs.setLayerDefaultStyle(layerName,  it.nameWithoutExtension)
+
+                println("HTTP " + status)
+            }
+            //####### END Try to set style file as default style of layer with same name ########
+
+        }
     }
 }

@@ -82,7 +82,7 @@ fun main(arguments : Array<String>) {
 
     println("Starting upload to GeoServer at " + args.geoServerUrl)
 
-    var result = syncer.syncDir(File(args.syncDir))
+    var result = syncer.uploadDir(File(args.syncDir))
 
     if (!result) {
         println("ERROR: Invalid upload directory")

@@ -25,7 +25,7 @@ class TestGeoServerSync {
 
         var uploadDir = File("nonExistentDir")
 
-        var result : Boolean = syncer.syncDir(uploadDir)
+        var result : Boolean = syncer.uploadDir(uploadDir)
 
         assertEquals(false, result)
     }
@@ -36,11 +36,9 @@ class TestGeoServerSync {
 
         var syncer = GeoServerSync(gs, false, false)
 
-        var result : Boolean = syncer.syncDir(testUploadDir)
+        var result : Boolean = syncer.uploadDir(testUploadDir)
 
         assertEquals(true, result)
     }
-
-
 
 }

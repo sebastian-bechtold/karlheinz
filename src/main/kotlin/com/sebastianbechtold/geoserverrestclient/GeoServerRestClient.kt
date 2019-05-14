@@ -22,7 +22,6 @@ class GeoServerRestClient(private val _geoServerUrl: String, username: String, p
     val urlRest = _geoServerUrl + "rest"
     val urlWorkspaces = urlRest + "/workspaces"
     val urlLayers = urlRest + "/layers"
-    val urlStyles = urlRest + "/styles"
 
 
     fun createWorkspace(name: String): Int {
@@ -53,19 +52,7 @@ class GeoServerRestClient(private val _geoServerUrl: String, username: String, p
         );
     }
 
-
-    // TODO 3: Redesign this. A response code != 200 could mean something other than that the workspace does not exist!
-    fun existsLayer(layerName: String): Boolean {
-        return gsHttpRequest(urlLayers + "/" + layerName, "GET") == 200;
-    }
-
-
-    // TODO 3: Redesign this. A response code != 200 could mean something other than that the workspace does not exist!
-    fun existsWorkspace(wsName: String): Boolean {
-        return gsHttpRequest(urlWorkspaces + "/" + wsName, "GET") == 200;
-    }
-
-
+    /*
     fun getContentTypeFromFileName(name: String): String {
 
         // TODO: 3 Replace this with loop over map (file ending -> content type)
@@ -84,6 +71,8 @@ class GeoServerRestClient(private val _geoServerUrl: String, username: String, p
 
         return ""
     }
+    */
+
 
 
     fun getMimeTypeFromFileName(fileName: String): String? {
@@ -110,6 +99,82 @@ class GeoServerRestClient(private val _geoServerUrl: String, username: String, p
         } catch (exception: Exception) {
             println("Exception: " + exception.message)
         }
+
+        return statusCode
+    }
+
+
+
+    // TODO 3: Redesign this. A response code != 200 could mean something other than that the workspace does not exist!
+    fun layerExists(layerName: String): Boolean {
+        return gsHttpRequest(urlLayers + "/" + layerName, "GET") == 200;
+    }
+
+
+    fun uploadDataStore(wsName : String, file : File, overwrite: Boolean) : Int {
+        // TODO: 3 Check existence of workspace before file upload
+
+        //val contentType = getContentTypeFromFileName(file.name)
+        val mimeType = getMimeTypeFromFileName(file.name)
+
+        if (mimeType == null) {
+            return 0
+        }
+
+        var url = ""
+        var httpMethod = ""
+
+        var resourceExists = true
+
+        // NOTE: Setting of uploaded file type could also be done using the "accept" header. See
+        // https://docs.geoserver.org/latest/en/api/#/latest/en/api/1.0.0/datastores.yaml
+
+        // TODO: 2 This will probably not create the data store name we want
+       // url = urlWorkspaces + "/" + wsName + "/" + "datastores/" + file.nameWithoutExtension + "/file." + contentType
+
+        url = urlWorkspaces + "/" + wsName + "/" + "datastores/" + file.nameWithoutExtension + "/file." + file.extension
+        httpMethod = "PUT"
+
+        resourceExists = (gsHttpRequest(url, "GET") == 200)
+
+        if (url == "") {
+            return 0
+        }
+
+        if (resourceExists) {
+
+            if (!overwrite) {
+                println("Resource '${file.nameWithoutExtension}' already exists and overwrite is disabled!")
+                return 0
+
+            }
+
+            println("Updating resource '${file.name}'")
+
+        } else {
+            println("Creating resource '${file.name}'")
+
+        }
+
+        return gsHttpRequest(url, httpMethod, FileInputStream(file), mapOf("Content-type" to mimeType))
+    }
+
+
+    fun uploadFeatureType(wsName : String, dataStoreName : String, it : File) : Int {
+
+
+        val mimeType = getMimeTypeFromFileName(it.name)
+
+        if (mimeType == null) {
+            return 0
+        }
+
+        var url = urlWorkspaces + "/" + wsName + "/datastores/${dataStoreName}/featuretypes/"
+
+
+        println("Uploading feature type definition '${it.name}'")
+
+        var statusCode = gsHttpRequest(url, "POST", FileInputStream(it), mapOf("Content-type" to mimeType))
 
         return statusCode
     }
@@ -173,6 +238,7 @@ class GeoServerRestClient(private val _geoServerUrl: String, username: String, p
     }
 
 
+    /*
     fun uploadFile(file: File, wsName: String, overwrite: Boolean): Int {
 
         // TODO: 3 Check existence of workspace before file upload
@@ -201,58 +267,7 @@ class GeoServerRestClient(private val _geoServerUrl: String, username: String, p
                 resourceExists = (gsHttpRequest(url, "GET") == 200)
             }
 
-            "sld" -> {
 
-                var baseUrl = urlRest
-
-                if (wsName != "") {
-                    baseUrl = urlWorkspaces + "/" + wsName
-                }
-
-                var url_create = baseUrl + "/styles?name=" + file.nameWithoutExtension
-                var url_update = baseUrl + "/styles/" + file.nameWithoutExtension + ".sld"
-
-                resourceExists = (gsHttpRequest(url_update, "GET") == 200)
-
-                // If resource exists, update file with PUT:
-                if (resourceExists) {
-                    url = url_update
-                    httpMethod = "PUT"
-                }
-                // Otherwise, create file with POST:
-                else {
-                    url = url_create
-                    httpMethod = "POST"
-                }
-            }
-
-            "sld.zip" -> {
-
-                var baseUrl = urlRest
-
-                if (wsName != "") {
-                    baseUrl = urlWorkspaces + "/" + wsName
-                }
-
-                var fileNameBase = file.nameWithoutExtension.substring(0, file.nameWithoutExtension.length - 4)
-
-
-                var url_create = baseUrl + "/styles?name=" + fileNameBase
-                var url_update = baseUrl + "/styles/" + fileNameBase + ".sld"
-
-                resourceExists = (gsHttpRequest(url_update, "GET") == 200)
-
-                // If resource exists, update file with PUT:
-                if (resourceExists) {
-                    url = url_update
-                    httpMethod = "PUT"
-                }
-                // Otherwise, create file with POST:
-                else {
-                    url = url_create
-                    httpMethod = "POST"
-                }
-            }
 
 
 
@@ -304,7 +319,7 @@ class GeoServerRestClient(private val _geoServerUrl: String, username: String, p
 
         return gsHttpRequest(url, httpMethod, FileInputStream(file), mapOf("Content-type" to mimeType))
     }
-
+     */
 
     fun setLayerDefaultStyle(layerName: String, styleName: String): Int {
 
@@ -319,4 +334,11 @@ class GeoServerRestClient(private val _geoServerUrl: String, username: String, p
             mapOf("Content-type" to "application/xml")
         );
     }
+
+
+    // TODO 3: Redesign this. A response code != 200 could mean something other than that the workspace does not exist!
+    fun workspaceExists(wsName: String): Boolean {
+        return gsHttpRequest(urlWorkspaces + "/" + wsName, "GET") == 200;
+    }
+
 }

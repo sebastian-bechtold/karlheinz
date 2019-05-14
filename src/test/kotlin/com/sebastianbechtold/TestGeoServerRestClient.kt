@@ -2,7 +2,6 @@ package com.sebastianbechtold
 
 import com.sebastianbechtold.geoserverrestclient.GeoServerRestClient
 import org.junit.Test
-import java.io.File
 import kotlin.test.assertEquals
 
 
@@ -22,20 +21,20 @@ class TestGeoServerRestClient {
     @Test
     fun createWorkspace() {
 
-        if (gs.existsWorkspace(testWsName)) {
+        if (gs.workspaceExists(testWsName)) {
             assertEquals(200, gs.deleteWorkspace(testWsName))
         }
 
         gs.createWorkspace(testWsName)
 
-        assertEquals(true, gs.existsWorkspace(testWsName))
+        assertEquals(true, gs.workspaceExists(testWsName))
     }
 
 
     @Test
     fun deleteWorkspace() {
 
-        if (!gs.existsWorkspace(testWsName)) {
+        if (!gs.workspaceExists(testWsName)) {
             assertEquals(200, gs.createWorkspace(testWsName))
         }
 
