@@ -108,13 +108,6 @@ class GeoServerRestClient(private val _geoServerUrl: String, username: String, p
     }
 
 
-    fun getMimeTypeFromFileName(fileName: String): String? {
-        var fileEnding = fileName.substring(fileName.lastIndexOf('.') + 1)
-
-        return _mimeTypesMap[fileEnding]
-    }
-
-
     fun gsHttpRequest(
         url: String,
         method: String,
@@ -166,7 +159,6 @@ class GeoServerRestClient(private val _geoServerUrl: String, username: String, p
             println("Creating resource '${file.name}'")
         }
 
-
         return gsHttpRequest(url, httpMethod, FileInputStream(file), mapOf("Content-type" to mimeType))
     }
 
@@ -183,7 +175,7 @@ class GeoServerRestClient(private val _geoServerUrl: String, username: String, p
         }
 
         var url = urlWorkspaces + "/" + wsName + "/" + "datastores/" + file.nameWithoutExtension + "/file." + extension
-        println(url)
+
         return upload(url, url, "PUT", file, overwrite)
     }
 
@@ -192,24 +184,19 @@ class GeoServerRestClient(private val _geoServerUrl: String, username: String, p
 
         var url = urlWorkspaces + "/" + wsName + "/datastores"
         var url_get = urlWorkspaces + "/" + wsName + "/datastores/" + file.nameWithoutExtension
-        var httpMethod = "POST"
 
-        println("Uploading data store definition '${file.name}'")
+        //println("Uploading data store definition '${file.name}'")
 
-        return upload(url, url_get, httpMethod, file, overwrite)
+        return upload(url, url_get, "POST", file, overwrite)
     }
 
 
     fun uploadFeatureTypeXml(wsName: String, dataStoreName: String, file: File, overwrite: Boolean): Int {
 
         var url = urlWorkspaces + "/" + wsName + "/datastores/${dataStoreName}/featuretypes"
-        var url_get =
-            urlWorkspaces + "/" + wsName + "/datastores/${dataStoreName}/featuretypes/" + file.nameWithoutExtension
+        var url_get = urlWorkspaces + "/" + wsName + "/datastores/${dataStoreName}/featuretypes/" + file.nameWithoutExtension
 
-        var httpMethod = "POST"
-
-
-        println("Uploading feature type definition '${file.name}'")
+        //println("Uploading feature type definition '${file.name}'")
 
         var resourceExists = (gsHttpRequest(url_get, "GET") == 200)
 

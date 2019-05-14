@@ -64,7 +64,7 @@ class GeoServerSync(var gs: GeoServerRestClient,
             } else {
                 when (it.extension) {
 
-                    "shp", "gpkg" -> {
+                    "gpkg", "zip" -> {
                         dataStoreFiles.add(it)
                     }
 
@@ -162,9 +162,9 @@ class GeoServerSync(var gs: GeoServerRestClient,
 
                 println("Setting uploaded style '${it.name}' as default style for layer '${layerName}'.")
 
-                val status = gs.setLayerDefaultStyle(layerName, it.nameWithoutExtension)
+                val status_assign = gs.setLayerDefaultStyle(layerName, it.nameWithoutExtension)
 
-                println("HTTP " + status)
+                println("HTTP " + status_assign)
             }
             //####### END Try to set style file as default style of layer with same name ########
 
