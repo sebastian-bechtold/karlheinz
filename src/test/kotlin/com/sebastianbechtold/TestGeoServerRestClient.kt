@@ -46,13 +46,13 @@ class TestGeoServerRestClient {
         assertEquals(201,gs.createWorkspace(testWsName))
 
         // Upload data store:
-        assertEquals(201,gs.uploadDataStore(testWsName, File(testDataDir + "test.gpkg"), false))
+        assertEquals(201,gs.uploadDataStore(testWsName, File(testDataDir + "test_gpkg.gpkg"), false))
 
         // Create:
-        assertEquals(201, gs.uploadFeatureTypeXml(testWsName, "test", File(testDataDir + "raumeinheiten_32632.xml"), false))
+        assertEquals(201, gs.uploadFeatureTypeXml(testWsName, "test_gpkg", File(testDataDir + "raumeinheiten_32632.xml"), false))
 
         // Update:
-        assertEquals(200, gs.uploadFeatureTypeXml(testWsName, "test", File(testDataDir + "raumeinheiten_32632.xml"), true))
+        assertEquals(200, gs.uploadFeatureTypeXml(testWsName, "test_gpkg", File(testDataDir + "raumeinheiten_32632.xml"), true))
 
         // Cleanup:
         assertEquals(200, gs.deleteWorkspace(testWsName, true))
@@ -62,11 +62,14 @@ class TestGeoServerRestClient {
     @Test
     fun uploadGpkg() {
 
-        gs.createWorkspace(testWsName)
+        gs.deleteWorkspace(testWsName, true)
+        assertEquals(201, gs.createWorkspace(testWsName))
 
-        assertEquals(201, gs.uploadDataStore(testWsName, File(testDataDir + "test.gpkg"), true))
+        // Upload GPKG:
+        assertEquals(201, gs.uploadDataStore(testWsName, File(testDataDir + "test_gpkg.gpkg"), true))
 
-        assertEquals(200, gs.deleteDataStore(testWsName, "test", true))
+        // Cleanup:
+        assertEquals(200, gs.deleteWorkspace(testWsName, true))
     }
 
 
@@ -75,10 +78,14 @@ class TestGeoServerRestClient {
 
         gs.deleteStyle("", "heatmap")
 
-        assertEquals(201, gs.uploadStyle("", File(testDataDir + "heatmap.sld"), true))
+        // Create:
+        assertEquals(201, gs.uploadStyle("", File(testDataDir + "heatmap.sld"), false))
 
-        assertEquals(200, gs.deleteStyle("", "heatmap"))
+        // Update:
+        assertEquals(200, gs.uploadStyle("", File(testDataDir + "heatmap.sld"), true))
 
+        // Cleanup:
+        assertEquals(200,gs.deleteStyle("", "heatmap"))
     }
 
 

@@ -143,9 +143,10 @@ class GeoServerRestClient(private val _geoServerUrl: String, username: String, p
 
     fun upload(url: String, url_get: String, httpMethod: String, file: File, overwrite: Boolean): Int {
 
-        val mimeType = getMimeTypeFromFileName(file.name)
+        val mimeType = _mimeTypesMap[file.extension]
 
         if (mimeType == null) {
+            println("Unknown mime type: " + mimeType)
             return 0
         }
 
@@ -221,8 +222,6 @@ class GeoServerRestClient(private val _geoServerUrl: String, username: String, p
         else {
             return upload(url, url_get, "POST", file, overwrite)
         }
-
-        //return upload(url, url_get, httpMethod, file, overwrite)
     }
 
 
