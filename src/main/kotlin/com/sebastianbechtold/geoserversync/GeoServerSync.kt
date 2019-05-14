@@ -120,6 +120,7 @@ class GeoServerSync(var _gs: GeoServerRestClient, var overwriteDataStores : Bool
 
 
     fun uploadDatasets(wsName : String, datasetFiles : ArrayList<File>) {
+
         for(it in datasetFiles) {
             var status = _gs.uploadFile(it, wsName, overwriteDataStores)
             println("HTTP " + status)
@@ -128,6 +129,7 @@ class GeoServerSync(var _gs: GeoServerRestClient, var overwriteDataStores : Bool
 
 
     fun uploadFeatureTypes(wsName : String, datasetFolders : ArrayList<File>) {
+
         for (folder in datasetFolders) {
             createFeatureTypes(wsName, folder)
         }

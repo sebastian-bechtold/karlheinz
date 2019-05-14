@@ -115,6 +115,64 @@ class GeoServerRestClient(private val _geoServerUrl: String, username: String, p
     }
 
 
+    fun uploadStyle(wsName : String, file : File, overwrite: Boolean) : Int {
+
+        val mimeType = getMimeTypeFromFileName(file.name)
+
+        if (mimeType == null) {
+            return 0
+        }
+
+        var url = ""
+        var httpMethod = ""
+
+        var resourceExists = true
+
+        var baseUrl = urlRest
+
+        if (wsName != "") {
+            baseUrl = urlWorkspaces + "/" + wsName
+        }
+
+        var url_create = baseUrl + "/styles?name=" + file.nameWithoutExtension
+        var url_update = baseUrl + "/styles/" + file.nameWithoutExtension + ".sld"
+
+        resourceExists = (gsHttpRequest(url_update, "GET") == 200)
+
+        // If resource exists, update file with PUT:
+        if (resourceExists) {
+            url = url_update
+            httpMethod = "PUT"
+        }
+        // Otherwise, create file with POST:
+        else {
+            url = url_create
+            httpMethod = "POST"
+        }
+
+        if (url == "") {
+            return 0
+        }
+
+        if (resourceExists) {
+
+            if (!overwrite) {
+                println("Resource '${file.nameWithoutExtension}' already exists and overwrite is disabled!")
+                return 0
+
+            }
+
+            println("Updating resource '${file.name}'")
+
+        } else {
+            println("Creating resource '${file.name}'")
+
+        }
+
+        return gsHttpRequest(url, httpMethod, FileInputStream(file), mapOf("Content-type" to mimeType))
+    }
+
+
     fun uploadFile(file: File, wsName: String, overwrite: Boolean): Int {
 
         // TODO: 3 Check existence of workspace before file upload

@@ -38,7 +38,7 @@ class TestGeoServerRestClient {
         if (!gs.existsWorkspace(testWsName)) {
             assertEquals(200, gs.createWorkspace(testWsName))
         }
-        
+
         assertEquals(200, gs.deleteWorkspace(testWsName))
     }
 
