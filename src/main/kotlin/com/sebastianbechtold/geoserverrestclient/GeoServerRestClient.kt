@@ -38,6 +38,22 @@ class GeoServerRestClient(private val _geoServerUrl: String, username: String, p
     }
 
 
+    fun deleteWorkspace(name : String, deleteContents : Boolean = false) : Int {
+
+        var url = urlWorkspaces + "/" + name
+
+        if (deleteContents) {
+            url += "?recurse=true"
+        }
+
+        return gsHttpRequest(
+            url,
+            "DELETE",
+            headers = mapOf("Content-type" to "application/xml")
+        );
+    }
+
+
     // TODO 3: Redesign this. A response code != 200 could mean something other than that the workspace does not exist!
     fun existsLayer(layerName: String): Boolean {
         return gsHttpRequest(urlLayers + "/" + layerName, "GET") == 200;
