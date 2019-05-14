@@ -20,7 +20,7 @@ class TestGeoServerSync {
     @Test
     fun passingNonExistentUploadDirShouldReturnFalse() {
 
-        var syncer = GeoServerSync(gs, false, false)
+        var syncer = GeoServerSync(gs, false, false, false)
 
         var uploadDir = File("nonExistentDir")
 
@@ -33,7 +33,7 @@ class TestGeoServerSync {
     @Test
     fun passingExistentUploadDirShouldReturnTrue() {
 
-        var syncer = GeoServerSync(gs, false, false)
+        var syncer = GeoServerSync(gs, false, false, false)
 
         syncer.gs.deleteWorkspace("test", true)
 

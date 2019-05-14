@@ -101,13 +101,30 @@ class GeoServerRestClient(private val _geoServerUrl: String, username: String, p
     }
 
 
-    fun upload(url : String, httpMethod: String, file : File) : Int {
+    fun upload(url : String, url_get : String, httpMethod: String, file : File, overwrite : Boolean) : Int {
 
         val mimeType = getMimeTypeFromFileName(file.name)
 
         if (mimeType == null) {
             return 0
         }
+
+
+        var resourceExists = (gsHttpRequest(url_get, "GET") == 200)
+
+        if (resourceExists) {
+
+            if (!overwrite) {
+                println("Resource '${file.nameWithoutExtension}' already exists and overwrite is disabled!")
+                return 0
+            }
+
+            println("Updating resource '${file.name}'")
+
+        } else {
+            println("Creating resource '${file.name}'")
+        }
+
 
         return gsHttpRequest(url, httpMethod, FileInputStream(file), mapOf("Content-type" to mimeType))
     }
@@ -128,11 +145,13 @@ class GeoServerRestClient(private val _geoServerUrl: String, username: String, p
         var httpMethod = "PUT"
 
 
-        var resourceExists = (gsHttpRequest(url, "GET") == 200)
-
         if (url == "") {
             return 0
         }
+
+        /*
+        var resourceExists = (gsHttpRequest(url, "GET") == 200)
+
 
         if (resourceExists) {
 
@@ -148,36 +167,37 @@ class GeoServerRestClient(private val _geoServerUrl: String, username: String, p
             println("Creating resource '${file.name}'")
 
         }
+        */
 
-        return upload(url, httpMethod, file)
+
+        return upload(url, url, httpMethod, file, overwrite)
     }
 
 
     fun uploadDataStoreXml(wsName: String, file: File, overwrite: Boolean): Int {
 
-        // TODO: 2 This is almost identical to uploadFeatureTypeXml(). Merge shared code!
-
-
         var url = urlWorkspaces + "/" + wsName + "/datastores"
+        var url_get = urlWorkspaces + "/" + wsName + "/datastores/" + file.nameWithoutExtension
         var httpMethod = "POST"
-
 
         println("Uploading data store definition '${file.name}'")
 
-        return upload(url, httpMethod, file)
+        return upload(url, url_get, httpMethod, file, overwrite)
     }
 
 
-    fun uploadFeatureTypeXml(wsName: String, dataStoreName: String, file: File): Int {
+    fun uploadFeatureTypeXml(wsName: String, dataStoreName: String, file: File, overwrite : Boolean): Int {
 
 
         var url = urlWorkspaces + "/" + wsName + "/datastores/${dataStoreName}/featuretypes"
+        var url_get = urlWorkspaces + "/" + wsName + "/datastores/${dataStoreName}/featuretypes/" + file.nameWithoutExtension
+
         var httpMethod = "POST"
 
 
         println("Uploading feature type definition '${file.name}'")
 
-        return upload(url, httpMethod, file)
+        return upload(url, url_get, httpMethod, file, overwrite)
     }
 
 
@@ -215,22 +235,8 @@ class GeoServerRestClient(private val _geoServerUrl: String, username: String, p
             return 0
         }
 
-        if (resourceExists) {
 
-            if (!overwrite) {
-                println("Resource '${file.nameWithoutExtension}' already exists and overwrite is disabled!")
-                return 0
-
-            }
-
-            println("Updating resource '${file.name}'")
-
-        } else {
-            println("Creating resource '${file.name}'")
-
-        }
-
-        return upload(url, httpMethod, file)
+        return upload(url, url_update, httpMethod, file, overwrite)
     }
 
 

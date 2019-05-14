@@ -26,8 +26,12 @@ class Args {
     @Option(name = "-od", required = false, usage = "Overwrite data stores?")
     var overwriteDataStores: Boolean = false
 
+    @Option(name = "-of", required = false, usage = "Overwrite feature types?")
+    var overwriteFeatureTypes: Boolean = false
+
     @Option(name = "-os", required = false, usage = "Overwrite styles?")
     var overwriteStyles: Boolean = false
+
 
 
     // receives other command line parameters than options
@@ -78,7 +82,8 @@ fun main(arguments : Array<String>) {
     args.init(arguments)
 
 
-    var syncer = GeoServerSync(GeoServerRestClient(args.geoServerUrl, args.username, args.password), args.overwriteDataStores, args.overwriteStyles)
+    var syncer = GeoServerSync(GeoServerRestClient(args.geoServerUrl,
+        args.username, args.password), args.overwriteDataStores, args.overwriteStyles, args.overwriteFeatureTypes)
 
     println("Starting upload to GeoServer at " + args.geoServerUrl)
 

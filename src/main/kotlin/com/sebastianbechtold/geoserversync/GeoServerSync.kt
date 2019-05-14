@@ -6,7 +6,10 @@ import java.io.File
 
 // TODO: 4 Implement filename-based ignoring of files and folders (e.g. with leading '_')
 
-class GeoServerSync(var gs: GeoServerRestClient, var overwriteDataStores: Boolean, val overwriteStyles: Boolean) {
+class GeoServerSync(var gs: GeoServerRestClient,
+                    var overwriteDataStores: Boolean,
+                    val overwriteStyles: Boolean,
+                    val overwriteFeatureTypes : Boolean) {
 
 
     fun uploadDir(dir: File): Boolean {
@@ -126,7 +129,7 @@ class GeoServerSync(var gs: GeoServerRestClient, var overwriteDataStores: Boolea
                     return@forEach
                 }
 
-                var statusCode = gs.uploadFeatureTypeXml(wsName, dir.name, it)
+                var statusCode = gs.uploadFeatureTypeXml(wsName, dir.name, it, overwriteFeatureTypes)
 
                 println("HTTP " + statusCode)
             }
