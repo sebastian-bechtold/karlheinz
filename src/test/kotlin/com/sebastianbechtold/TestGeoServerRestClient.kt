@@ -42,14 +42,20 @@ class TestGeoServerRestClient {
 
         gs.deleteWorkspace(testWsName, true)
 
-        gs.createWorkspace(testWsName)
+        // Create workspace:
+        assertEquals(201,gs.createWorkspace(testWsName))
 
+        // Upload data store:
         assertEquals(201,gs.uploadDataStore(testWsName, File(testDataDir + "test.gpkg"), false))
 
+        // Create:
         assertEquals(201, gs.uploadFeatureTypeXml(testWsName, "test", File(testDataDir + "raumeinheiten_32632.xml"), false))
 
+        // Update:
         assertEquals(200, gs.uploadFeatureTypeXml(testWsName, "test", File(testDataDir + "raumeinheiten_32632.xml"), true))
 
+        // Cleanup:
+        assertEquals(200, gs.deleteWorkspace(testWsName, true))
     }
 
 
@@ -79,13 +85,17 @@ class TestGeoServerRestClient {
     @Test
     fun uploadWorkspaceSld() {
 
-        gs.createWorkspace(testWsName)
+        gs.deleteWorkspace(testWsName, true)
 
-        gs.deleteStyle(testWsName, "heatmap")
+        assertEquals(201, gs.createWorkspace(testWsName))
 
-        assertEquals(201, gs.uploadStyle(testWsName, File(testDataDir + "heatmap.sld"), true))
+        // Create style:
+        assertEquals(201, gs.uploadStyle(testWsName, File(testDataDir + "heatmap.sld"), false))
 
+        // Update style:
+        assertEquals(200, gs.uploadStyle(testWsName, File(testDataDir + "heatmap.sld"), true))
+
+        // Cleanup:
         assertEquals(200, gs.deleteWorkspace(testWsName, true))
-
     }
 }
