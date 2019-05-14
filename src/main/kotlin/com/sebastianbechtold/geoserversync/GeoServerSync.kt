@@ -40,8 +40,8 @@ class GeoServerSync(var gs: GeoServerRestClient,
 
     fun syncWorkspace(workspaceDir: File, wsName: String = workspaceDir.name) {
 
-        if (!gs.workspaceExists(wsName)) {
-            println("Creating workspace '${wsName}' ... ")
+        if (!gs.existsWorkspace(wsName)) {
+            println("Creating workspace '${wsName}'")
             println("HTTP " + gs.createWorkspace(wsName))
         } else {
             println("Workspace '${wsName}' already exists, no need to create it.")
@@ -158,7 +158,7 @@ class GeoServerSync(var gs: GeoServerRestClient,
             //####### BEGIN Try to set style file as default style of layer with same name ########
             val layerName = wsName + ":" + it.nameWithoutExtension
 
-            if (gs.layerExists(layerName)) {
+            if (gs.existsLayer(layerName)) {
 
                 println("Setting uploaded style '${it.name}' as default style for layer '${layerName}'.")
 

@@ -1,7 +1,9 @@
 package com.sebastianbechtold.geoserverrestclient
 
-import java.io.*
-import java.lang.Exception
+import java.io.ByteArrayInputStream
+import java.io.File
+import java.io.FileInputStream
+import java.io.InputStream
 import java.util.*
 
 
@@ -34,14 +36,6 @@ class GeoServerRestClient(private val _geoServerUrl: String, username: String, p
             ByteArrayInputStream(xml.toByteArray()),
             mapOf("Content-type" to "application/xml")
         );
-    }
-
-
-    fun dataStoreExists(wsName: String, dataStoreName: String): Boolean {
-
-        var url = urlWorkspaces + "/" + wsName + "/" + "datastores/" + dataStoreName
-
-        return (gsHttpRequest(url, "GET") == 200)
     }
 
 
@@ -80,11 +74,37 @@ class GeoServerRestClient(private val _geoServerUrl: String, username: String, p
             url += "?recurse=true"
         }
 
-        return gsHttpRequest(
-            url,
-            "DELETE",
-            headers = mapOf("Content-type" to "application/xml")
-        );
+        return gsHttpRequest(url, "DELETE");
+    }
+
+
+    fun existsDataStore(wsName: String, dataStoreName: String): Boolean {
+
+        var url = urlWorkspaces + "/" + wsName + "/" + "datastores/" + dataStoreName
+
+        return (gsHttpRequest(url, "GET") == 200)
+    }
+
+
+    fun existsLayer(name: String): Boolean {
+        return gsHttpRequest(urlLayers + "/" + name, "GET") == 200;
+    }
+
+
+    fun existsStyle(wsName: String, styleName: String): Boolean {
+
+        var baseUrl = urlRest
+
+        if (wsName != "") {
+            baseUrl = urlWorkspaces + "/" + wsName
+        }
+
+        return gsHttpRequest(baseUrl + "/styles/" + styleName, "GET") == 200;
+    }
+
+
+    fun existsWorkspace(wsName: String): Boolean {
+        return gsHttpRequest(urlWorkspaces + "/" + wsName, "GET") == 200;
     }
 
 
@@ -95,13 +115,33 @@ class GeoServerRestClient(private val _geoServerUrl: String, username: String, p
     }
 
 
-    fun gsHttpRequest(url: String, method: String, data: InputStream? = null, headers: Map<String, String> = mapOf()): Int {
+    fun gsHttpRequest(
+        url: String,
+        method: String,
+        data: InputStream? = null,
+        headers: Map<String, String> = mapOf()
+    ): Int {
 
         return com.sebastianbechtold.nanohttp.httpRequest(url, method, data, headers + _authHeaders).statusCode;
     }
 
 
-    fun upload(url : String, url_get : String, httpMethod: String, file : File, overwrite : Boolean) : Int {
+    fun setLayerDefaultStyle(layerName: String, styleName: String): Int {
+
+        var url = urlLayers + "/" + layerName + ".xml"
+
+        var xml = "<layer><defaultStyle><name>${styleName}</name></defaultStyle></layer>"
+
+        return gsHttpRequest(
+            url,
+            "PUT",
+            ByteArrayInputStream(xml.toByteArray()),
+            mapOf("Content-type" to "application/xml")
+        );
+    }
+
+
+    fun upload(url: String, url_get: String, httpMethod: String, file: File, overwrite: Boolean): Int {
 
         val mimeType = getMimeTypeFromFileName(file.name)
 
@@ -130,45 +170,19 @@ class GeoServerRestClient(private val _geoServerUrl: String, username: String, p
     }
 
 
-    fun layerExists(layerName: String): Boolean {
-        return gsHttpRequest(urlLayers + "/" + layerName, "GET") == 200;
-    }
-
-
     fun uploadDataStore(wsName: String, file: File, overwrite: Boolean): Int {
-
 
         // NOTE: Setting of uploaded file type could also be done using the "accept" header. See
         // https://docs.geoserver.org/latest/en/api/#/latest/en/api/1.0.0/datastores.yaml
 
-        var url = urlWorkspaces + "/" + wsName + "/" + "datastores/" + file.nameWithoutExtension + "/file." + file.extension
+        var url =
+            urlWorkspaces + "/" + wsName + "/" + "datastores/" + file.nameWithoutExtension + "/file." + file.extension
         var httpMethod = "PUT"
 
 
         if (url == "") {
             return 0
         }
-
-        /*
-        var resourceExists = (gsHttpRequest(url, "GET") == 200)
-
-
-        if (resourceExists) {
-
-            if (!overwrite) {
-                println("Resource '${file.nameWithoutExtension}' already exists and overwrite is disabled!")
-                return 0
-
-            }
-
-            println("Updating resource '${file.name}'")
-
-        } else {
-            println("Creating resource '${file.name}'")
-
-        }
-        */
-
 
         return upload(url, url, httpMethod, file, overwrite)
     }
@@ -186,11 +200,11 @@ class GeoServerRestClient(private val _geoServerUrl: String, username: String, p
     }
 
 
-    fun uploadFeatureTypeXml(wsName: String, dataStoreName: String, file: File, overwrite : Boolean): Int {
-
+    fun uploadFeatureTypeXml(wsName: String, dataStoreName: String, file: File, overwrite: Boolean): Int {
 
         var url = urlWorkspaces + "/" + wsName + "/datastores/${dataStoreName}/featuretypes"
-        var url_get = urlWorkspaces + "/" + wsName + "/datastores/${dataStoreName}/featuretypes/" + file.nameWithoutExtension
+        var url_get =
+            urlWorkspaces + "/" + wsName + "/datastores/${dataStoreName}/featuretypes/" + file.nameWithoutExtension
 
         var httpMethod = "POST"
 
@@ -202,7 +216,6 @@ class GeoServerRestClient(private val _geoServerUrl: String, username: String, p
 
 
     fun uploadStyle(wsName: String, file: File, overwrite: Boolean): Int {
-
 
         var url = ""
         var httpMethod = ""
@@ -231,45 +244,6 @@ class GeoServerRestClient(private val _geoServerUrl: String, username: String, p
             httpMethod = "POST"
         }
 
-        if (url == "") {
-            return 0
-        }
-
-
         return upload(url, url_update, httpMethod, file, overwrite)
     }
-
-
-    fun setLayerDefaultStyle(layerName: String, styleName: String): Int {
-
-        var url = urlLayers + "/" + layerName + ".xml"
-
-        var xml = "<layer><defaultStyle><name>${styleName}</name></defaultStyle></layer>"
-
-        return gsHttpRequest(
-            url,
-            "PUT",
-            ByteArrayInputStream(xml.toByteArray()),
-            mapOf("Content-type" to "application/xml")
-        );
-    }
-
-
-    fun styleExists(wsName: String, styleName: String): Boolean {
-
-        var baseUrl = urlRest
-
-        if (wsName != "") {
-            baseUrl = urlWorkspaces + "/" + wsName
-        }
-
-        return gsHttpRequest(baseUrl + "/styles/" + styleName, "GET") == 200;
-    }
-
-
-    // TODO 3: Redesign this. A response code != 200 could mean something other than that the workspace does not exist!
-    fun workspaceExists(wsName: String): Boolean {
-        return gsHttpRequest(urlWorkspaces + "/" + wsName, "GET") == 200;
-    }
-
 }
