@@ -126,7 +126,7 @@ class GeoServerSync(var gs: GeoServerRestClient, var overwriteDataStores: Boolea
                     return@forEach
                 }
 
-                var statusCode = gs.uploadFeatureType(wsName, dir.name, it)
+                var statusCode = gs.uploadFeatureTypeXml(wsName, dir.name, it)
 
                 println("HTTP " + statusCode)
             }
