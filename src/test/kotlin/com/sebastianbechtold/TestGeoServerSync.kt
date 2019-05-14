@@ -42,24 +42,5 @@ class TestGeoServerSync {
     }
 
 
-    @Test
-    fun createWorkspace() {
 
-        var testWsName = "test"
-
-        var syncer = GeoServerSync(gs, false, false)
-
-        if (gs.existsWorkspace(testWsName)) {
-            assertEquals(200, gs.deleteWorkspace(testWsName))
-        }
-
-
-        assertEquals(true, syncer.syncDir(testUploadDir))
-    }
-
-
-    @Test
-    fun uploadGpkg() {
-
-    }
 }
