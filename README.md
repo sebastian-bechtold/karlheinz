@@ -5,44 +5,67 @@ Karlheinz is a command line tool for easy uploading and publishing of data files
 
 # What's new?
 
-## 2019-06-10
-By default, Karlheinz does no longer overwrite existing data stores and styles. To force overwriting of existing data stores, add the command line flag '-od'. To force overwriting of existing styles, add the command line flag '-os'.
+## 2019-05-14
+
+A large part of Karlheinz was heavily redesigned in order to make the code shorter and simpler. This also brought some changes in the program's behaviour. This manual has been updated accordingly. Also, a first set of unit tests were added.
+
+## 2019-05-11
+By default, Karlheinz does no longer overwrite existing resources on a GeoServer instance. See section "Overwriting and deleting of existing resources" for more information.
 
 ## 2019-05-10
 Karlheinz now supports the creation of layers from existing multi-layer data stores like PostgreSQL/PostGIS connections or GeoPackage SQLite files. 
 
 # How does it work?
 
-When started, Karlheinz scans a user-specified directory on your computer for subfolders and files within these subfolders. For each subfolder, it creates a workspace with the same name on your GeoServer instance. Each file within a subfolder is automatically uploaded to your GeoServer, and, depending on its type, either configured as a data source and published as a layer, or registered as a style. The specific action depends on the file's type, determined by the file name ending:
+## Workspaces
 
-- A ".shp.zip" file is expected to be a zip archive that contains an ESRI Shapefile dataset (i.e. with .shp, .dbf and other required files present). Its content will be set up as a data source and layer in GeoServer.
+When started, Karlheinz scans a user-specified directory on your computer for subfolders and files within these subfolders. For each subfolder, it creates a workspace with the same name on your GeoServer instance. 
 
-- A ".gpkg" file is expected to contain a GeoPackage SQLite geodatabase. Its content will be set up as a data source and layer in GeoServer.
+## Data stores
 
-- A ".sld" file is expected to be a Styled Layer Descriptor (SLD) XML document. The SLD document will be installed as a style in your GeoServer instance.
+Karlheinz iterates over all files and folders within a workspace folder and performs different operations with each item, depending on its type.
 
-- A ".sld.zip" file is expected to be a zip archive that contains a Style Layer Descriptor (SLD) XML document. The SLD document will be installed as a style in your GeoServer instance.
+- A ".zip" file is expected to be a zip archive that contains an ESRI Shapefile dataset (i.e. with .shp, .dbf and other required files present). It will be uploaded and its content will be set up as a data source and feature type (layer) in GeoServer. 
 
+- A ".gpkg" file is expected to contain a GeoPackage SQLite geodatabase. Its content will be set up as a data source and layer in GeoServer. Note that for GeoPackage files that contain multiple feature types, GeoServer will set up only one of them as a GeoServer layer automatically. This is a bug/limitation in GeoServer. As a workaround, you can provide an XML feature type description file for each other layer in the file.
+
+## Feature types
+
+Feature types (or layers) are references to individual data sets (layers/tables/etc.) in a data store that supports multiple layers, like GeoPackage or PostGIS. 
+
+An ".xml" file in a workspace folder is expected to be an XML document that contains a GeoServer feature type XML description. 
+
+## Styles
+
+If a workspace directory contains a subfolder named "styles", Karlheinz will upload the contained files to GeoServer and register them as workspace-level styles.
+
+- A ".sld" file in the "styles" subfolder is expected to be a Styled Layer Descriptor (SLD) XML document. 
+
+- A ".zip" file in the "styles" subfolder is expected to be a zip archive that contains a Style Layer Descriptor (SLD) XML document.
+
+### Automatic style assignment
+
+Karlheinz can automatically assign an uploaded workspace-level SLD style as the default style of an existing layer in the same workspace if the following conditions are fulfilled:
+
+- The layer's name equals the style file's base name (file name without extension). For example, the style document "water.sld" would be assigned as the default style of the layer "water". The same applies to an uploaded style file named "water.zip".
+
+- The layer's data source resides in the same workspace as the style. For global styles, no auto-assignment is performed.
+
+
+## A general comment about file types
 
 File types are currently determined by the file ending (sequence of characters after the last occurence of '.' in the file name). 
 
 ## Overwriting and deleting of existing resources
-By default, Karlheinz does not overwrite existing data stores and styles. To force overwriting of existing data stores, add the command line flag '-od'. To force overwriting of existing styles, add the command line flag '-os'.
+By default, Karlheinz does not overwrite existing data stores and styles. 
+
+- To force overwriting of existing data stores, add the command line flag '-od'. 
+
+- To force overwriting of existing feature types, add the command line flag '-of'.
+
+- To force overwriting of existing styles, add the command line flag '-os'.
 
 Karlheinz will not delete a workspace, data set or layer from the GeoServer instance if you delete the corresponding file from your upload dir. Such a "delete mode" might be added as optional behavior in a future version.
-
-
-## GeoServer behaviour on data source updates
-
-When a data source file is updated (i.e. re-uploaded and overwriting an existing data source file), the respective layer is not re-created from scratch. Existing layer configuration settings are kept. 
-
-## Auto-assignment of layer styles
-
-Karlheinz can automatically assign an uploaded SLD style as the default style of an existing layer if the following conditions are fulfilled:
-
-- The layer's name equals the style file's base name (file name without extension). For example, the style document "water.sld" would be assigned as the default style of the layer "water". The same applies to an uploaded style file named "water.sld.zip".
-
-- The layer's data source resides in the same working space as the style. For global styles, no auto-assignment is performed.
 
 # Usage
 
@@ -51,19 +74,21 @@ Karlheinz can automatically assign an uploaded SLD style as the default style of
 Karlheinz is a command line tool that comes as a Java .jar runnable archive. You can use it like this:
 
 ```
-java -jar karlheinz.jar -dir <your-upload-dir> -url <your-geoserver-url> -u <geoserver-user-name> -p <geoserver-password> 
+java -jar karlheinz.jar -dir <your-upload-dir> -url <your-geoserver-url> -u <geoserver-user-name> -p <geoserver-password> [-od] [-of] [-os]
 ```
 Example:
 
 ```
-java -jar karlheinz.jar -dir /home/me/geoserver_upload -url http://192.168.56.101:8080/geoserver/ -u admin -p topsecret 
+java -jar karlheinz.jar -dir /home/me/geoserver_upload -url http://192.168.56.101:8080/geoserver/ -u admin -p topsecret -od -of -os
 ```
+
+Omitting the optional '-od', '-of' and '-os' flags disables overwriting for *d*data stores, *f*eature types or *s*tyles, respectively (also see section "Overwriting and deleting of existing resources" above).
 
 ## Creating layers from existing data stores
 
 To create a layer from an existing data store, 
 
-1. create a folder named "_<your-datastore-name>" inside a workspace folder. The workspace should contain a data store with the respective name. This could be a GeoPackage file in the same folder which is uploaded by Karlheinz, a PostGIS connection, or any other type of GeoServer data store.
+1. create a folder named "<your-datastore-name>" inside a workspace folder. The workspace should contain a data store with the respective name. This could be a GeoPackage file in the same folder which is uploaded by Karlheinz, a PostGIS connection, or any other type of GeoServer data store.
   
 2. Within that folder, for each layer that you want to create, place an .xml file with an XML document that conforms to the following (minimal) scheme:
 
@@ -73,6 +98,7 @@ To create a layer from an existing data store,
   <nativeName>name-of-the-database-table-to-publish</nativeName>
 </featureType>
 ```
+
 Additional XML elements can be added according to the GeoServer feature type XML schema.
 
 
