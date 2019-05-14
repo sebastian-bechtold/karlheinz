@@ -2,12 +2,16 @@ package com.sebastianbechtold
 
 import com.sebastianbechtold.geoserverrestclient.GeoServerRestClient
 import org.junit.Test
+import java.io.File
 import kotlin.test.assertEquals
+import kotlin.test.assertFalse
 
+
+// TODO: 2 Test upload of zipped SLD (global and workspace)
 
 class TestGeoServerRestClient {
 
-    var geoserverUrl = "http://192.168.0.100:8080/geoserver/"
+    var geoserverUrl = "http://localhost:8080/geoserver/"
     var username = "admin"
     var password = "geoserver"
 
@@ -19,31 +23,53 @@ class TestGeoServerRestClient {
 
 
     @Test
-    fun createWorkspace() {
+    fun createAndDeleteWorkspace() {
 
-        if (gs.workspaceExists(testWsName)) {
-            assertEquals(200, gs.deleteWorkspace(testWsName))
-        }
+        gs.deleteWorkspace(testWsName, true)
 
         gs.createWorkspace(testWsName)
 
-        assertEquals(true, gs.workspaceExists(testWsName))
-    }
+        assert(gs.workspaceExists(testWsName))
 
+        assertEquals(200, gs.deleteWorkspace(testWsName, true))
 
-    @Test
-    fun deleteWorkspace() {
-
-        if (!gs.workspaceExists(testWsName)) {
-            assertEquals(200, gs.createWorkspace(testWsName))
-        }
-
-        assertEquals(200, gs.deleteWorkspace(testWsName))
+        assertFalse(gs.workspaceExists(testWsName))
     }
 
 
     @Test
     fun uploadGpkg() {
+
+        gs.createWorkspace(testWsName)
+
+        assertEquals(201, gs.uploadDataStore(testWsName, File(testDataDir + "test.gpkg"), true))
+
+        assertEquals(200, gs.deleteDataStore(testWsName, "test", true))
+    }
+
+
+    @Test
+    fun uploadGlobalSld() {
+
+        gs.deleteStyle("", "heatmap")
+
+        assertEquals(201, gs.uploadStyle("", File(testDataDir + "heatmap.sld"), true))
+
+        assertEquals(200, gs.deleteStyle("", "heatmap"))
+
+    }
+
+
+    @Test
+    fun uploadWorkspaceSld() {
+
+        gs.createWorkspace(testWsName)
+
+        gs.deleteStyle(testWsName, "heatmap")
+
+        assertEquals(201, gs.uploadStyle(testWsName, File(testDataDir + "heatmap.sld"), true))
+
+        assertEquals(200, gs.deleteWorkspace(testWsName, true))
 
     }
 }

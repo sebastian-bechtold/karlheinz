@@ -78,6 +78,11 @@ class GeoServerSync(var _gs: GeoServerRestClient, var overwriteDataStores : Bool
 
 
         // Upload styles:
+
+        // NOTE: WorkspaceDir is a local variable in this function. That's why we need to perform the existence
+        // check for the styles folder here and can not move it into uploadStyles() (unless we pass workspaceDir
+        // to uploadStyles()).
+
         var stylesFolder = File(workspaceDir.path + "/styles")
 
         if (stylesFolder.exists()) {
@@ -106,60 +111,10 @@ class GeoServerSync(var _gs: GeoServerRestClient, var overwriteDataStores : Bool
 
                 var statusCode = _gs.uploadFeatureType(wsName, dir.name, it)
 
-                /*
-                var url = _gs.urlWorkspaces + "/" + wsName + "/datastores/${dir.name}/featuretypes/"
-
-                var mimeType = "application/xml"
-
-                println("Uploading feature type definition '${it.name}'")
-
-                var statusCode = _gs.gsHttpRequest(url, "POST", FileInputStream(it), mapOf("Content-type" to mimeType))
-                */
                 println("HTTP " + statusCode)
             }
         }
     }
-
-
-    /*
-    fun uploadStyles(wsName : String, styleFiles: ArrayList<File>) {
-
-        //####### BEGIN Try to set each uploaded style file as default style of layer with same name ########
-
-        // NOTE: We do this in a separate loop after all data and style files were uploaded in order to make
-        // sure that all layers which are created from the uploaded data files already exist.
-
-        for (it in styleFiles) {
-
-            // First, upload the style file:
-            var status = _gs.uploadFile(it, wsName, overwriteStyles)
-            println("HTTP " + status)
-
-            // Then, try to auto-assign it as default style for existing layer with same name:
-
-            var fileNameBase = ""
-
-            if (it.name.endsWith("sld")) {
-                //fileNameBase = styleFile.name.substring(0, styleFile.name.length - 4)
-                fileNameBase = it.nameWithoutExtension
-            } else if (it.name.endsWith("sld.zip")) {
-                fileNameBase = it.nameWithoutExtension.substring(0, it.nameWithoutExtension.length - 4)
-            }
-
-            val layerName = wsName + ":" + fileNameBase
-
-            if (_gs.layerExists(layerName)) {
-
-                println("Setting uploaded style '${it.name}' as default style for layer '${layerName}'.")
-
-                val status = _gs.setLayerDefaultStyle(layerName, fileNameBase)
-
-                println("HTTP " + status)
-            }
-        }
-        //####### END Try to set each uploaded style file as default style of layer with same name ########
-    }
-    */
 
 
     fun uploadStyles(wsName : String, stylesFolder : File) {

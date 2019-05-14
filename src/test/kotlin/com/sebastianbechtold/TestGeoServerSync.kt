@@ -8,7 +8,7 @@ import kotlin.test.assertEquals
 
 class TestGeoServerSync {
 
-    var geoserverUrl = "http://192.168.0.100:8080/geoserver/"
+    var geoserverUrl = "http://localhost:8080/geoserver/"
     var username = "admin"
     var password = "geoserver"
 
@@ -19,7 +19,6 @@ class TestGeoServerSync {
 
     @Test
     fun passingNonExistentUploadDirShouldReturnFalse() {
-
 
         var syncer = GeoServerSync(gs, false, false)
 
