@@ -101,12 +101,7 @@ class GeoServerRestClient(private val _geoServerUrl: String, username: String, p
     }
 
 
-    fun layerExists(layerName: String): Boolean {
-        return gsHttpRequest(urlLayers + "/" + layerName, "GET") == 200;
-    }
-
-
-    fun uploadDataStore(wsName: String, file: File, overwrite: Boolean): Int {
+    fun upload(url : String, httpMethod: String, file : File) : Int {
 
         val mimeType = getMimeTypeFromFileName(file.name)
 
@@ -114,10 +109,24 @@ class GeoServerRestClient(private val _geoServerUrl: String, username: String, p
             return 0
         }
 
+        return gsHttpRequest(url, httpMethod, FileInputStream(file), mapOf("Content-type" to mimeType))
+    }
+
+
+    fun layerExists(layerName: String): Boolean {
+        return gsHttpRequest(urlLayers + "/" + layerName, "GET") == 200;
+    }
+
+
+    fun uploadDataStore(wsName: String, file: File, overwrite: Boolean): Int {
+
+
         // NOTE: Setting of uploaded file type could also be done using the "accept" header. See
         // https://docs.geoserver.org/latest/en/api/#/latest/en/api/1.0.0/datastores.yaml
 
         var url = urlWorkspaces + "/" + wsName + "/" + "datastores/" + file.nameWithoutExtension + "/file." + file.extension
+        var httpMethod = "PUT"
+
 
         var resourceExists = (gsHttpRequest(url, "GET") == 200)
 
@@ -140,55 +149,40 @@ class GeoServerRestClient(private val _geoServerUrl: String, username: String, p
 
         }
 
-        return gsHttpRequest(url, "PUT", FileInputStream(file), mapOf("Content-type" to mimeType))
+        return upload(url, httpMethod, file)
     }
 
 
-    fun uploadDataStoreXml(wsName: String, it: File, overwrite: Boolean): Int {
+    fun uploadDataStoreXml(wsName: String, file: File, overwrite: Boolean): Int {
 
         // TODO: 2 This is almost identical to uploadFeatureTypeXml(). Merge shared code!
 
-        val mimeType = getMimeTypeFromFileName(it.name)
-
-        if (mimeType == null) {
-            return 0
-        }
 
         var url = urlWorkspaces + "/" + wsName + "/datastores"
+        var httpMethod = "POST"
 
 
-        println("Uploading data store definition '${it.name}'")
+        println("Uploading data store definition '${file.name}'")
 
-        var statusCode = gsHttpRequest(url, "POST", FileInputStream(it), mapOf("Content-type" to mimeType))
-
-        return statusCode
+        return upload(url, httpMethod, file)
     }
 
 
-    fun uploadFeatureTypeXml(wsName: String, dataStoreName: String, it: File): Int {
+    fun uploadFeatureTypeXml(wsName: String, dataStoreName: String, file: File): Int {
 
-        val mimeType = getMimeTypeFromFileName(it.name)
-
-        if (mimeType == null) {
-            return 0
-        }
 
         var url = urlWorkspaces + "/" + wsName + "/datastores/${dataStoreName}/featuretypes"
+        var httpMethod = "POST"
 
 
-        println("Uploading feature type definition '${it.name}'")
+        println("Uploading feature type definition '${file.name}'")
 
-        return gsHttpRequest(url, "POST", FileInputStream(it), mapOf("Content-type" to mimeType))
+        return upload(url, httpMethod, file)
     }
 
 
     fun uploadStyle(wsName: String, file: File, overwrite: Boolean): Int {
 
-        val mimeType = getMimeTypeFromFileName(file.name)
-
-        if (mimeType == null) {
-            return 0
-        }
 
         var url = ""
         var httpMethod = ""
@@ -236,7 +230,7 @@ class GeoServerRestClient(private val _geoServerUrl: String, username: String, p
 
         }
 
-        return gsHttpRequest(url, httpMethod, FileInputStream(file), mapOf("Content-type" to mimeType))
+        return upload(url, httpMethod, file)
     }
 
 
