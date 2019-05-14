@@ -16,14 +16,11 @@ class TestGeoServerRestClient {
 
     var testDataDir = "testData/"
 
-    var testUploadDir = File("testData/testUploadDir")
+    var testWsName = "test"
 
 
     @Test
     fun createWorkspace() {
-
-        var testWsName = "test"
-
 
         if (gs.existsWorkspace(testWsName)) {
             assertEquals(200, gs.deleteWorkspace(testWsName))
@@ -32,6 +29,17 @@ class TestGeoServerRestClient {
         gs.createWorkspace(testWsName)
 
         assertEquals(true, gs.existsWorkspace(testWsName))
+    }
+
+
+    @Test
+    fun deleteWorkspace() {
+
+        if (!gs.existsWorkspace(testWsName)) {
+            assertEquals(200, gs.createWorkspace(testWsName))
+        }
+        
+        assertEquals(200, gs.deleteWorkspace(testWsName))
     }
 
 
