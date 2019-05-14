@@ -74,6 +74,25 @@ class TestGeoServerRestClient {
 
 
     @Test
+    fun uploadShpZip() {
+
+        gs.deleteWorkspace(testWsName, true)
+        assertEquals(201, gs.createWorkspace(testWsName))
+
+        // Create:
+        assertEquals(201, gs.uploadDataStore(testWsName, File(testDataDir + "test_shp.zip"), false))
+
+        // Upload shp.zip:
+        assertEquals(201, gs.uploadDataStore(testWsName, File(testDataDir + "test_shp.zip"), true))
+
+        // Cleanup:
+        assertEquals(200, gs.deleteDataStore(testWsName, "test_shp", true))
+
+        assertEquals(200, gs.deleteWorkspace(testWsName,true))
+    }
+
+
+    @Test
     fun uploadGlobalSld() {
 
         gs.deleteStyle("", "heatmap")

@@ -176,16 +176,15 @@ class GeoServerRestClient(private val _geoServerUrl: String, username: String, p
         // NOTE: Setting of uploaded file type could also be done using the "accept" header. See
         // https://docs.geoserver.org/latest/en/api/#/latest/en/api/1.0.0/datastores.yaml
 
-        var url =
-            urlWorkspaces + "/" + wsName + "/" + "datastores/" + file.nameWithoutExtension + "/file." + file.extension
-        var httpMethod = "PUT"
+        var extension = "gpkg"
 
-
-        if (url == "") {
-            return 0
+        if (file.extension == "zip") {
+            extension = "shp"
         }
 
-        return upload(url, url, httpMethod, file, overwrite)
+        var url = urlWorkspaces + "/" + wsName + "/" + "datastores/" + file.nameWithoutExtension + "/file." + extension
+        println(url)
+        return upload(url, url, "PUT", file, overwrite)
     }
 
 
