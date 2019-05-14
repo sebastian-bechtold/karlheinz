@@ -35,6 +35,8 @@ class TestGeoServerSync {
 
         var syncer = GeoServerSync(gs, false, false)
 
+        syncer.gs.deleteWorkspace("test", true)
+
         var result : Boolean = syncer.uploadDir(testUploadDir)
 
         assertEquals(true, result)

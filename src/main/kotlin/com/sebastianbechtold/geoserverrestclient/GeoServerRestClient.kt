@@ -104,14 +104,14 @@ class GeoServerRestClient(private val _geoServerUrl: String, username: String, p
 
         var statusCode = 0
 
-        try {
-            statusCode =
-                com.sebastianbechtold.nanohttp.httpRequest(url, method, data, headers + _authHeaders).statusCode;
 
-        } catch (exception: Exception) {
-            //println("Exception: " + exception.message)
+        //try {
+            statusCode = com.sebastianbechtold.nanohttp.httpRequest(url, method, data, headers + _authHeaders).statusCode;
+/*
+        } catch (exception: IOException) {
+            //println (exception.message)
         }
-
+*/
         return statusCode
     }
 
@@ -119,6 +119,25 @@ class GeoServerRestClient(private val _geoServerUrl: String, username: String, p
     // TODO 3: Redesign this. A response code != 200 could mean something other than that the workspace does not exist!
     fun layerExists(layerName: String): Boolean {
         return gsHttpRequest(urlLayers + "/" + layerName, "GET") == 200;
+    }
+
+
+    fun uploadDataStoreXml(wsName : String, it : File, overwrite:  Boolean) : Int {
+
+        val mimeType = getMimeTypeFromFileName(it.name)
+
+        if (mimeType == null) {
+            return 0
+        }
+
+        var url = urlWorkspaces + "/" + wsName + "/datastores"
+
+
+        println("Uploading data store definition '${it.name}'")
+
+        var statusCode = gsHttpRequest(url, "POST", FileInputStream(it), mapOf("Content-type" to mimeType))
+
+        return statusCode
     }
 
 
@@ -170,7 +189,7 @@ class GeoServerRestClient(private val _geoServerUrl: String, username: String, p
             return 0
         }
 
-        var url = urlWorkspaces + "/" + wsName + "/datastores/${dataStoreName}/featuretypes/"
+        var url = urlWorkspaces + "/" + wsName + "/datastores/${dataStoreName}/featuretypes"
 
 
         println("Uploading feature type definition '${it.name}'")

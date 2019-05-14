@@ -25,12 +25,7 @@ fun InputStream.myTransferTo(os: OutputStream) {
 }
 
 
-fun httpRequest(
-    url: String,
-    method: String = "GET",
-    data: InputStream? = null,
-    headers: Map<String, String> = mapOf()
-): HttpResponse {
+fun httpRequest(url: String, method: String = "GET", data: InputStream? = null, headers: Map<String, String> = mapOf()): HttpResponse {
 
     var conn: HttpURLConnection = URL(url).openConnection() as HttpURLConnection
 
@@ -52,8 +47,7 @@ fun httpRequest(
 
     try {
         conn.inputStream.myTransferTo(output)
-    } catch (e: FileNotFoundException) {
-
+    } catch (e: Exception) {
     }
 
     // Return HttpResponse object:
