@@ -23,7 +23,7 @@ When started, Karlheinz scans a user-specified directory on your computer for su
 
 ## Data stores
 
-Karlheinz iterates over all files and folders within a workspace folder and performs different operations with each item, depending on its type.
+Karlheinz iterates over all files and folders within a workspace folder and performs different operations with each item, depending on its file ending.
 
 - A ".zip" file is expected to be a zip archive that contains an ESRI Shapefile dataset (i.e. with .shp, .dbf and other required files present). It will be uploaded and its content will be set up as a data source and feature type (layer) in GeoServer. 
 
