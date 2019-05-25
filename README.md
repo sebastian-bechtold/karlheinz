@@ -5,6 +5,11 @@ Karlheinz is a command line tool for easy uploading and publishing of data files
 
 # What's new?
 
+## 2019-05-25
+- This manual: An error in the section about feature type XML definitions has been corrected.
+- This manual: Missing information about the handling of data store XML definitions has been added.
+- A compiled, ready-to-use karlheinz.jar has been added to the repository.
+
 ## 2019-05-14
 
 A large part of Karlheinz was heavily redesigned in order to make the code shorter and simpler. This also brought some changes in the program's behaviour. This manual has been updated accordingly. Also, a first set of unit tests were added.
