@@ -5,6 +5,11 @@ Karlheinz is a command line tool for easy uploading and publishing of data files
 
 # What's new?
 
+## 2019-05-25
+- This manual: An error in the section about feature type XML definitions has been corrected.
+- This manual: Missing information about the handling of data store XML definitions has been added.
+- A compiled, ready-to-use karlheinz.jar has been added to the repository.
+
 ## 2019-05-14
 
 A large part of Karlheinz was heavily redesigned in order to make the code shorter and simpler. This also brought some changes in the program's behaviour. This manual has been updated accordingly. Also, a first set of unit tests were added.
@@ -23,17 +28,19 @@ When started, Karlheinz scans a user-specified directory on your computer for su
 
 ## Data stores
 
-Karlheinz iterates over all files and folders within a workspace folder and performs different operations with each item, depending on its type.
+Karlheinz iterates over all files and folders within a workspace folder and performs different operations with each item, depending on its file ending.
 
 - A ".zip" file is expected to be a zip archive that contains an ESRI Shapefile dataset (i.e. with .shp, .dbf and other required files present). It will be uploaded and its content will be set up as a data source and feature type (layer) in GeoServer. 
 
 - A ".gpkg" file is expected to contain a GeoPackage SQLite geodatabase. Its content will be set up as a data source and layer in GeoServer. Note that for GeoPackage files that contain multiple feature types, GeoServer will set up only one of them as a GeoServer layer automatically. This is a bug/limitation in GeoServer. As a workaround, you can provide an XML feature type description file for each other layer in the file.
 
+- A ".xml" file is expected to be a GeoServer data store XML description. For example, these can be PostGIS database connections or references to .shp or .gpkg files which were not uploaded by Karlheinz and/or are located in other folders than the GeoServer data directory. Take a look at the GeoServer REST API documentation to learn about the expected structure of a GeoServer data store XML definition.
+
 ## Feature types
 
-Feature types (or layers) are references to individual data sets (layers/tables/etc.) in a data store that supports multiple layers, like GeoPackage or PostGIS. 
+Feature types (or layers) are references to individual data sets (layers/tables/etc.) in a data store that supports multiple layers, like GeoPackage or PostGIS. When a Shapefile or GeoPackage data store file is uploaded (see section "Data Stores"), GeoServer automatically creates a feature type entry for *one* of the layers contained in the uploaded data store file. Shapefiles can contain only one layer anyway, but GeoPackage files can contain multiple layers for which you need to set up a GeoServer feature type separately. The same applies to other multi-layer data stores like PostGIS connections.
 
-An ".xml" file in a workspace folder is expected to be an XML document that contains a GeoServer feature type XML description. 
+In order to publish a layer from a GeoServer data store through Karlheinz, you first need to create a subfolder within the workspace folder where the data store is located. The subfolder needs to be given the same name as the data store. For example, if you have a multi-layer GeoPackage file named "test.gpkg" in your workspace folder and want to publish layers from that GeoPackage, the subfolder must be named "test". Then, for each layer you want to publish, put a .XML file containing the respective GeoServer XML feature type definition into the subfolder. Take a look at the GeoServer REST API documentation to learn about the expected structure of a GeoServer feature type XML definition.
 
 ## Styles
 
