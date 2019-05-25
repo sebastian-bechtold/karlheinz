@@ -29,11 +29,13 @@ Karlheinz iterates over all files and folders within a workspace folder and perf
 
 - A ".gpkg" file is expected to contain a GeoPackage SQLite geodatabase. Its content will be set up as a data source and layer in GeoServer. Note that for GeoPackage files that contain multiple feature types, GeoServer will set up only one of them as a GeoServer layer automatically. This is a bug/limitation in GeoServer. As a workaround, you can provide an XML feature type description file for each other layer in the file.
 
+- A ".xml" file is expected to be a GeoServer data store XML description. For example, these can be PostGIS database connections or references to .shp or .gpkg files which were not uploaded by Karlheinz and/or are located in other folders than the GeoServer data directory. Take a look at the GeoServer REST API documentation to learn about the expected structure of a GeoServer data store XML definition.
+
 ## Feature types
 
-Feature types (or layers) are references to individual data sets (layers/tables/etc.) in a data store that supports multiple layers, like GeoPackage or PostGIS. 
+Feature types (or layers) are references to individual data sets (layers/tables/etc.) in a data store that supports multiple layers, like GeoPackage or PostGIS. When a Shapefile or GeoPackage data store file is uploaded (see section "Data Stores"), GeoServer automatically creates a feature type entry for *one* of the layers contained in the uploaded data store file. Shapefiles can contain only one layer anyway, but GeoPackage files can contain multiple layers for which you need to set up a GeoServer feature type separately. The same applies to other multi-layer data stores like PostGIS connections.
 
-An ".xml" file in a workspace folder is expected to be an XML document that contains a GeoServer feature type XML description. 
+In order to publish a layer from a GeoServer data store through Karlheinz, you first need to create a subfolder within the workspace folder where the data store is located. The subfolder needs to be given the same name as the data store. For example, if you have a multi-layer GeoPackage file named "test.gpkg" in your workspace folder and want to publish layers from that GeoPackage, the subfolder must be named "test". Then, for each layer you want to publish, put a .XML file containing the respective GeoServer XML feature type definition into the subfolder. Take a look at the GeoServer REST API documentation to learn about the expected structure of a GeoServer feature type XML definition.
 
 ## Styles
 
