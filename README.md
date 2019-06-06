@@ -22,9 +22,51 @@ Karlheinz now supports the creation of layers from existing multi-layer data sto
 
 # How does it work?
 
-## Workspaces
+## The upload directory and its internal structure
+When started, Karlheinz scans a user-specified directory on your computer for subfolders and files within these subfolders. 
 
-When started, Karlheinz scans a user-specified directory on your computer for subfolders and files within these subfolders. For each subfolder, it creates a workspace with the same name on your GeoServer instance. 
+The schematic below shows an example of a Karlheinz upload directory structure. The different types of files and subfolders and their relationships are described in the following sections of this document.
+
+```
+Upload Dir
+|
+|- globalStyle1.sld
+|
+|- globalStyle2.sld
+|
+|- workspace1
+   |
+   |- datastore.gpkg
+   | 
+   |- datastore2.gpkg
+   |
+   |- postgisDataStore.xml
+   |
+   |- datastore1/
+      |
+      |- layer1.xml
+      |
+      |- layer2.xml
+   |   
+   |- postgisDataStore/
+      |
+      |- layer1.xml      
+   |
+   |
+   |- styles/
+      |
+      |- workspaceStyle1.sld
+      |
+      |- workspaceStyle2.sld
+|   
+|- workspace2
+   |
+   ...
+
+```
+
+## Workspaces
+For each subfolder of the upload directory, Karlheinz creates a workspace with the same name on your GeoServer instance. 
 
 ## Data stores
 
